@@ -7,72 +7,88 @@
   <title>RecyConnect | Sign Up</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-200 to-green-500">
+<body class="min-h-screen bg-gradient-to-b from-green-200 to-green-500">
 
-  <!-- Card -->
-  <div class="bg-white/95 w-full max-w-sm rounded-2xl shadow-xl overflow-hidden relative">
-    <!-- Logo top-left -->
-    <div class="absolute top-3 left-4 flex items-center gap-2">
-      <img src="{% static 'LogoRecy.png' %}" class="h-7" alt="RecyConnect Logo">
-      <span class="font-bold text-green-600">RecyConnect</span>
-    </div>
+  <!-- Top-left logo  -->
+  <a href="#" class="fixed top-4 left-4 z-50">
+    <img src="{% static 'LogoRecy.png' %}" alt="RecyConnect" class="h-16 md:h-20 w-auto drop-shadow">
+  </a>
 
-    <!-- Close -->
-    <a href="{% url 'landingpage' %}" class="absolute top-3 right-4 text-2xl leading-none text-gray-500 hover:text-red-500">×</a>
+  <!-- Top-right close  -->
+  <a href="{% url 'landingPage' %}" class="fixed top-4 right-4 z-50 text-gray-700 hover:text-red-500 text-2xl font-bold leading-none">
+    ×
+  </a>
 
-    <!-- Illustration -->
-    <img src="{% static 'Register.png' %}" alt="Register" class="w-full h-44 object-cover mt-10">
+  <!-- Content -->
+  <main class="w-full flex justify-center items-start pt-32 pb-12">
+    <div class="bg-white/95 w-full max-w-sm rounded-2xl shadow-xl overflow-hidden">
 
-    <div class="px-6 py-6">
-      <h2 class="text-center text-green-600 font-extrabold text-lg">Let’s Get Started.</h2>
+     
+      <div class="w-full flex justify-center pt-6">
+        <img src="{% static 'Register.png' %}" alt="Register" class="h-32 md:h-36 w-auto mx-auto">
+      </div>
 
-      <!-- Form -->
-      <form method="POST" action="{% url 'register' %}" class="mt-5 space-y-3" novalidate>
-        {% csrf_token %}
+      <div class="px-6 py-6">
+        <h2 class="text-center text-green-600 font-extrabold text-lg">Let’s Get Started.</h2>
 
-        <!-- Email -->
-        <input type="email" name="email" required placeholder="Email" autocomplete="email"
-               class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
+        <!-- Form -->
+        <form method="POST" action="{% url 'register' %}" class="mt-5 space-y-3" novalidate>
+          {% csrf_token %}
 
-        <!-- Password -->
-        <input type="password" name="password1" required placeholder="Password" autocomplete="new-password"
-               class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
+          <!-- Email -->
+          <input type="email" name="email" required placeholder="Email" autocomplete="email"
+                 class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
 
-        <!-- Confirm Password -->
-        <input type="password" name="password2" required placeholder="Confirm password" autocomplete="new-password"
-               class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
+          <!-- Password -->
+          <input type="password" name="password1" required placeholder="Password" autocomplete="new-password"
+                 class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
 
-        <!-- Role  -->
-        <div class="pt-2">
-          <p class="text-sm text-gray-600 mb-2">Select Role:</p>
-          <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
-            <label class="flex items-center gap-2">
-              <input type="radio" name="role" value="household" required class="accent-green-600">
-              Household
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="radio" name="role" value="collector" required class="accent-green-600">
-              Collector
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="radio" name="role" value="recycler" required class="accent-green-600">
-              Recycler
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="radio" name="role" value="buyer" required class="accent-green-600">
-              Buyer
-            </label>
+          <!-- Confirm Password -->
+          <input type="password" name="password2" required placeholder="Confirm password" autocomplete="new-password"
+                 class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
+
+          <!-- Role -->
+          <div class="pt-2">
+            <p class="text-sm text-gray-600 mb-2">Select Role:</p>
+            <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
+              <label class="flex items-center gap-2">
+                <input type="radio" name="role" value="household" required class="accent-green-600">
+                Household
+              </label>
+              <label class="flex items-center gap-2">
+                <input type="radio" name="role" value="collector" required class="accent-green-600">
+                Collector
+              </label>
+              <label class="flex items-center gap-2">
+                <input type="radio" name="role" value="recycler" required class="accent-green-600">
+                Recycler
+              </label>
+              <label class="flex items-center gap-2">
+                <input type="radio" name="role" value="buyer" required class="accent-green-600">
+                Buyer
+              </label>
+            </div>
           </div>
-        </div>
 
-        <!-- Submit -->
-        <button type="submit"
-                class="w-full bg-green-600 text-white py-2 rounded-full mt-2 hover:bg-green-700">
-          Sign Up
-        </button>
-      </form>
+          <!-- Submit -->
+          <button type="submit"
+                  class="w-full bg-green-600 text-white py-2 rounded-full mt-2 hover:bg-green-700">
+            Sign Up
+          </button>
+        </form>
 
-      <!-- Already have account -->
-      <p class="text-center text-sm text-gray-600 mt-4">
-        Already have an account?
-        <a href="{% url 'login' %}" class="inline-block bg-gray-800 text-white px-4 py-1 roun
+        <!-- Already have account -->
+        <p class="text-center text-sm text-gray-600 mt-4">
+          Already have an account?
+         <a href="{% url 'login' %}"
+   class="inline-flex items-center justify-center bg-gray-800 text-white px-5 py-2 rounded-full hover:bg-black leading-none">
+  Log In
+</a>
+
+        </p>
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>

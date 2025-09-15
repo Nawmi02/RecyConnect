@@ -41,7 +41,7 @@ def login_view(request):
         user = authenticate(request, email=email, password=password)
         if user is not None:
             login(request, user)
-            return redirect("home")   
+            return redirect("landingpage")   
         else:
             messages.error(request, "Invalid email or password")
             return redirect("login")
