@@ -1,0 +1,273 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}RecyConnect Admin{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --brand:#19b34b;
+      --text:#1f2937;
+      --bg:#ffffff;
+      --nav-h:64px;
+      --gap:36px;             /* equal gap between menu items */
+      --container:1200px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:Inter,system-ui,Arial,sans-serif;color:var(--text);background:#fff}
+
+    /* ===== Navbar ===== */
+    .navbar-wrap{
+      position:sticky; top:0; z-index:50;
+      background:var(--bg);
+      border-bottom:2px solid #e5e7eb;
+    }
+    .navbar{
+      height:var(--nav-h);
+      max-width:var(--container);
+      margin:0 auto;
+      padding:0 16px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:16px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width:120px;
+    }
+    .brand img{height:34px;width:auto; display:block}
+
+    /* ===== Main menu (icon over label) ===== */
+    .menu{
+      display:flex; align-items:center; justify-content:center;
+      gap:var(--gap);
+      flex:1;
+    }
+    .menu a{
+      width:92px;                       /* consistent width so spacing looks even */
+      text-decoration:none; color:var(--text);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:6px; padding:6px 4px; border-radius:10px; font-weight:500;
+      transition:transform .15s ease, background .15s ease;
+      text-align:center;
+    }
+    .menu a:hover{ background:#f1f5f9; transform:translateY(-1px) }
+    .menu img{ width:24px; height:24px; object-fit:contain; display:block }
+    .menu span{ font-size:13px; line-height:1; }
+
+    /* ===== Profile ===== */
+    .profile{ position:relative; display:flex; align-items:center; gap:10px; }
+    .avatar-btn{
+      border:none; background:transparent; padding:0; cursor:pointer;
+      display:grid; place-items:center;
+    }
+    .avatar{
+      width:38px; height:38px; border-radius:50%;
+      object-fit:cover; border:2px solid var(--brand);
+    }
+    .dropdown{
+      position:absolute; right:0; top:calc(100% + 10px);
+      background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+      box-shadow:0 12px 24px rgba(0,0,0,.08);
+      min-width:200px; padding:8px; display:none;
+    }
+    .dropdown.open{ display:block; }
+    .dropdown a{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px; border-radius:10px; color:var(--text);
+      text-decoration:none; font-weight:500;
+    }
+    .dropdown a:hover{ background:#f3f4f6 }
+    .dropdown .sep{ height:1px; background:#e5e7eb; margin:6px 0 }
+
+    /* ===== Content ===== */
+    .container{ max-width:var(--container); margin: 20px auto; padding: 0 16px 60px; }
+
+    /* ===== Footer ===== */
+    .footer{
+      margin-top:40px;
+      background:linear-gradient(to right, #16a34a, #10b981); 
+      color:#fff;
+    }
+    .footer .inner{
+      max-width:var(--container); margin:0 auto; padding:28px 16px 36px;
+      display:grid; gap:20px;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr;
+    }
+    .foot-brand{ display:flex; align-items:center; gap:10px; }
+    .foot-brand img{ height:36px; width:auto }
+    .foot-title{ font-size:20px; font-weight:700; margin:6px 0 4px }
+    .foot-col h4{ margin:0 0 10px; font-size:15px; text-transform:uppercase; letter-spacing:.4px }
+    .foot-col a{ display:block; color:#fff; text-decoration:none; margin:6px 0; opacity:.95 }
+    .foot-col a:hover{ text-decoration:underline }
+    .social-row{ display:flex; align-items:center; gap:14px; margin-top:6px }
+    .social-row img{ width:22px; height:22px }
+    .copyright{
+      text-align:center; color:#eaf6ee; font-size:13px;
+      padding:10px 16px 18px; border-top:1px solid rgba(255,255,255,.2);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 980px){
+      .menu{ gap:22px }
+      .menu a{ width:80px }
+    }
+    @media (max-width: 720px){
+      .menu{ gap:16px }
+      .menu a{ width:72px }
+      .menu span{ font-size:12px }
+    }
+    @media (max-width:560px){
+      .footer .inner{ grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width:420px){
+      .footer .inner{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <div class="navbar-wrap">
+    <nav class="navbar">
+
+      <!-- Left: Brand (logo only, no text beside) -->
+      <a class="brand" href="#">
+        <img src="{% static 'RecyLogoNew.png' %}" alt="RecyConnect">
+      </a>
+
+      <!-- Center: Menu (icon over label) -->
+      <div class="menu">
+        <a href="#">
+          <img src="{% static 'home.png' %}" alt="Home">
+          <span>Dashboard</span>
+        </a>
+        <a href="#">
+          <img src="{% static 'community.png' %}" alt="Community">
+          <span>Community</span>
+        </a>
+        <a href="#">
+          <img src="{% static 'cart.png' %}" alt="Marketplace">
+          <span>Marketplace</span>
+        </a>
+        <a href="#">
+          <img src="{% static 'learn.png' %}" alt="Learn">
+          <span>Learn</span>
+        </a>
+        <a href="#">
+          <img src="{% static 'trophy.png' %}" alt="Rewards">
+          <span>Rewards</span>
+        </a>
+        <a href="#">
+          <img src="{% static 'bell.png' %}" alt="Notifications">
+          <span>Notifications</span>
+        </a>
+      </div>
+
+      <!-- Right: Profile -->
+      <div class="profile">
+        <button class="avatar-btn" id="avatarBtn" aria-label="Profile menu">
+          {% if request.user.is_authenticated and request.user.profile_pic %}
+            <img class="avatar" src="{{ request.user.profile_pic.url }}" alt="Profile" />
+          {% else %}
+            <img class="avatar" src="{% static 'icons/avatar-placeholder.png' %}" alt="Profile" />
+          {% endif %}
+        </button>
+
+        <!-- Dropdown -->
+        <div class="dropdown" id="profileDropdown">
+          <a href="#">
+            <img src="{% static 'user.png' %}" alt="" width="18" height="18"> My Profile
+          </a>
+          <a href="#">
+            <img src="{% static 'settings.png' %}" alt="" width="18" height="18"> Settings
+          </a>
+          {% if request.user.is_staff or request.user.is_superuser %}
+          <a href="#">
+            <img src="{% static 'shield.png' %}" alt="" width="18" height="18"> Create Admin
+          </a>
+          {% endif %}
+          <div class="sep"></div>
+          <a href="#">
+            <img src="{% static 'logout.png' %}" alt="" width="18" height="18"> Log out
+          </a>
+        </div>
+      </div>
+
+    </nav>
+  </div>
+
+  <!-- ===== PAGE CONTENT ===== -->
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="inner">
+      <div class="foot-brand">
+        <img src="{% static 'LogoFooter.png' %}" alt="RecyConnect">
+        <div>
+          <div class="foot-title">Your Smart Pathway to Eco-Friendly Living</div>
+        </div>
+      </div>
+
+      <div class="foot-col">
+        <h4>Quick Links</h4>
+        <a href="#">Notification</a>
+        <a href="#">Marketplace</a>
+        <a href="#">Learn</a>
+        <a href="#">Search</a>
+      </div>
+
+      <div class="foot-col">
+        <h4>Contact Us</h4>
+        <div>Mail: <a href="mailto:recyconnect314@gmail.com">info_recyconnect@gmail.com</a></div>
+        <div style="margin-top:6px;">Phone: <a href="tel:+8801317247011">+8801317247011</a></div>
+      </div>
+
+      <div class="foot-col">
+        <h4>Social Media</h4>
+        <div class="social-row">
+          <a href="https://facebook.com/" target="_blank" rel="noopener">
+            <img src="{% static 'fb.png' %}" alt="Facebook">
+          </a>
+          <a href="https://instagram.com/" target="_blank" rel="noopener">
+            <img src="{% static 'insta.jpeg' %}" alt="Instagram">
+          </a>
+          <a href="https://twitter.com/" target="_blank" rel="noopener">
+            <img src="{% static 'X ic.jpg' %}" alt="Twitter/X">
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="copyright">
+      © 2025 RecyConnect. All rights reserved.
+    </div>
+  </footer>
+
+  <script>
+    // Profile dropdown toggle
+    (function(){
+      const btn = document.getElementById('avatarBtn');
+      const dd  = document.getElementById('profileDropdown');
+      if(!btn || !dd) return;
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        dd.classList.toggle('open');
+      });
+      document.addEventListener('click', function(){
+        dd.classList.remove('open');
+      });
+      document.addEventListener('keydown', function(ev){
+        if(ev.key === 'Escape') dd.classList.remove('open');
+      });
+    })();
+  </script>
+</body>
+</html>

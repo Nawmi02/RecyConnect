@@ -7,55 +7,138 @@
   <title>RecyConnect | Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-200 to-green-500">
+<body class="min-h-screen bg-gradient-to-b from-green-200 to-green-500">
 
-  <!-- Top-left logo -->
-  <a href="#" class="fixed top-4 left-4 z-20 flex items-center gap-2">
-    <img src="{% static 'LogoRecy.png' %}" alt="RecyConnect" class="h-12 w-auto md:h-14">
-  </a>
+  <!-- blur target wrapper -->
+  <div id="rc-root" class="min-h-screen flex items-center justify-center transition">
 
-  <!-- Top-right close -->
-  <a href="{% url 'landingPage' %}" class="fixed top-4 right-4 z-20 text-gray-700 hover:text-red-500 text-2xl font-bold leading-none">
-    ×
-  </a>
+    <!-- Top-left logo -->
+    <a href="#" class="fixed top-4 left-4 z-20 flex items-center gap-2">
+      <img src="{% static 'LogRegLogo.png' %}" alt="RecyConnect" class="h-12 w-auto md:h-14">
+    </a>
 
-  <!-- Card -->
-  <div class="bg-white rounded-xl shadow-lg w-full max-w-sm p-6 relative">
-    <!-- Logo (removed from inside card) -->
+    <!-- Top-right close -->
+    <a href="{% url 'landingPage' %}"
+       class="fixed top-4 right-4 z-20 text-gray-700 hover:text-red-500 text-2xl font-bold leading-none">×</a>
 
-    <!-- Image -->
-    <div class="flex justify-center mb-4">
-      <img src="{% static 'Recylogin.jpg' %}" alt="Login Illustration" class="h-28">
-    </div>
+    <!-- Card -->
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-sm p-6 relative">
 
-    <!-- Title -->
-    <h2 class="text-center text-green-600 font-bold text-lg mb-5">Welcome Back!</h2>
-
-    <!-- Form -->
-    <form method="POST" action="{% url 'login' %}" class="space-y-4" novalidate>
-      {% csrf_token %}
-
-      <input type="email" name="email" placeholder="Email" autocomplete="email" required
-             class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
-
-      <input type="password" name="password" placeholder="Password" autocomplete="current-password" required
-             class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
-
-      <div class="text-right text-sm">
-        <a href="#" class="text-gray-500 hover:underline">Forgot password?</a>
+      <!-- Image -->
+      <div class="flex justify-center mb-4">
+        <img src="{% static 'Recylogin.jpg' %}" alt="Login Illustration" class="h-28">
       </div>
 
-      <button type="submit"
-              class="w-full bg-green-600 text-white py-2 rounded-full hover:bg-green-700">
-        Log In
-      </button>
-    </form>
+      <!-- Title -->
+      <h2 class="text-center text-green-600 font-bold text-lg mb-5">Welcome Back!</h2>
 
-    <p class="text-center text-sm mt-5 text-gray-600">
-      Don’t have an account?
-      <a href="{% url 'register' %}" class="text-green-600 font-semibold hover:underline">Sign Up</a>
-    </p>
+      <!-- Django messages -->
+      {% if messages %}
+        <div class="mb-4 space-y-2">
+          {% for m in messages %}
+            <div class="px-3 py-2 rounded text-sm
+                        {% if m.tags == 'error' %}bg-red-100 text-red-700
+                        {% elif m.tags == 'warning' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-green-100 text-green-700{% endif %}">
+              {{ m }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Form -->
+      <form method="POST" action="{% url 'login' %}" class="space-y-4">
+        {% csrf_token %}
+
+        <input type="email" name="email" placeholder="Email" autocomplete="email" required
+               class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
+
+        <input type="password" name="password" placeholder="Password"
+               minlength="8" title="Minimum 8 characters"
+               autocomplete="current-password" required
+               class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
+
+        <div class="text-right text-sm">
+          <button type="button" id="rc-forgot" class="text-gray-500 hover:underline">
+            Forgot password?
+          </button>
+        </div>
+
+        <button type="submit"
+                class="w-full bg-green-600 text-white py-2 rounded-full hover:bg-green-700">
+          Log In
+        </button>
+      </form>
+
+      <p class="text-center text-sm mt-5 text-gray-600">
+        Don’t have an account?
+        <a href="{% url 'register' %}" class="text-green-600 font-semibold hover:underline">Sign Up</a>
+      </p>
+    </div>
   </div>
 
+  <!-- Password Reset Modal -->
+  <div id="rc-modal" class="fixed inset-0 z-50 hidden">
+    <!-- dim + blur backdrop -->
+    <div id="rc-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+
+    <!-- modal card -->
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+        <div class="px-6 py-4 border-b">
+          <h3 class="text-lg font-semibold text-green-700">Reset your password</h3>
+        </div>
+
+        <form method="POST" action="{% url 'set_password' %}" class="px-6 py-5 space-y-3">
+          {% csrf_token %}
+          <input type="hidden" name="email" id="rc-modal-email">
+
+          <input type="password" name="new_password" placeholder="New password"
+                 minlength="8" title="Minimum 8 characters" required autocomplete="new-password"
+                 class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
+
+          <input type="password" name="confirm_password" placeholder="Confirm password"
+                 minlength="8" title="Minimum 8 characters" required autocomplete="new-password"
+                 class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
+
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" id="rc-cancel"
+                    class="px-4 py-2 rounded-full border hover:bg-gray-50">Cancel</button>
+            <button type="submit"
+                    class="px-5 py-2 rounded-full bg-green-600 text-white hover:bg-green-700">
+              Change Password
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tiny JS (no external libs) -->
+  <script>
+    const root = document.getElementById('rc-root');
+    const modal = document.getElementById('rc-modal');
+    const openBtn = document.getElementById('rc-forgot');
+    const closeBtn = document.getElementById('rc-cancel');
+    const backdrop = document.getElementById('rc-backdrop');
+    const emailInput = document.querySelector('input[name="email"]');
+    const modalEmail = document.getElementById('rc-modal-email');
+
+    function openModal() {
+      const v = (emailInput.value || '').trim();
+      if (!v) { alert('Please enter your email first.'); return; }
+      modalEmail.value = v;
+      modal.classList.remove('hidden');
+      root.classList.add('blur-sm');
+    }
+    function closeModal() {
+      modal.classList.add('hidden');
+      root.classList.remove('blur-sm');
+    }
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  </script>
 </body>
 </html>

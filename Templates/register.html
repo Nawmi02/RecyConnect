@@ -9,9 +9,9 @@
 </head>
 <body class="min-h-screen bg-gradient-to-b from-green-200 to-green-500">
 
-  <!-- Top-left logo  -->
-  <a href="#" class="fixed top-4 left-4 z-50">
-    <img src="{% static 'LogoRecy.png' %}" alt="RecyConnect" class="h-16 md:h-20 w-auto drop-shadow">
+  <!-- Top-left logo -->
+  <a href="#" class="fixed top-4 left-4 z-20 flex items-center gap-2">
+    <img src="{% static 'LogRegLogo.png' %}" alt="RecyConnect" class="h-12 w-auto md:h-14">
   </a>
 
   <!-- Top-right close  -->
@@ -19,11 +19,12 @@
     ×
   </a>
 
-  <!-- Content -->
-  <main class="w-full flex justify-center items-start pt-32 pb-12">
+  <!-- Page content (no blur class toggled here) -->
+  <div id="rc-root" class="min-h-screen flex justify-center items-start pt-32 pb-12">
+
     <div class="bg-white/95 w-full max-w-sm rounded-2xl shadow-xl overflow-hidden">
 
-     
+      <!-- Illustration -->
       <div class="w-full flex justify-center pt-6">
         <img src="{% static 'Register.png' %}" alt="Register" class="h-32 md:h-36 w-auto mx-auto">
       </div>
@@ -31,8 +32,22 @@
       <div class="px-6 py-6">
         <h2 class="text-center text-green-600 font-extrabold text-lg">Let’s Get Started.</h2>
 
+        {% if messages %}
+          <div class="mt-3 space-y-2">
+            {% for m in messages %}
+              <div class="px-3 py-2 rounded text-sm
+                   {% if m.tags == 'error' %}bg-red-100 text-red-700
+                   {% elif m.tags == 'warning' %}bg-yellow-100 text-yellow-800
+                   {% else %}bg-green-100 text-green-700{% endif %}">
+                {{ m }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
         <!-- Form -->
-        <form method="POST" action="{% url 'register' %}" class="mt-5 space-y-3" novalidate>
+        <form id="rc-form" method="POST" action="{% url 'register' %}"
+              class="mt-5 space-y-3" enctype="multipart/form-data" novalidate>
           {% csrf_token %}
 
           <!-- Email -->
@@ -40,11 +55,13 @@
                  class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
 
           <!-- Password -->
-          <input type="password" name="password1" required placeholder="Password" autocomplete="new-password"
+          <input type="password" name="password1" required placeholder="Password"
+                 minlength="8" autocomplete="new-password"
                  class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
 
           <!-- Confirm Password -->
-          <input type="password" name="password2" required placeholder="Confirm password" autocomplete="new-password"
+          <input type="password" name="password2" required placeholder="Confirm password"
+                 minlength="8" autocomplete="new-password"
                  class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
 
           <!-- Role -->
@@ -70,25 +87,106 @@
             </div>
           </div>
 
-          <!-- Submit -->
-          <button type="submit"
+          <!-- Main Sign Up (we intercept for collector/recycler) -->
+          <button id="rc-submit" type="button"
                   class="w-full bg-green-600 text-white py-2 rounded-full mt-2 hover:bg-green-700">
             Sign Up
           </button>
+
+          <!-- ===== Modal (kept inside form so the file submits with form) ===== -->
+          <div id="rc-id-modal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+            <!-- Backdrop that blurs the page (widget stays sharp) -->
+            <div id="rc-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm md:backdrop-blur"></div>
+
+            <!-- Centered modal card -->
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+              <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden">
+                <div class="px-6 py-4 border-b">
+                  <h3 class="text-lg font-semibold text-green-700">
+                    Upload ID / Visiting Card (required)
+                  </h3>
+                  <p class="text-xs text-gray-500 mt-1">
+                    For <b>Collector</b> and <b>Recycling Centre</b> accounts only.
+                  </p>
+                </div>
+
+                <div class="px-6 py-5 space-y-4">
+                  <input id="id_card_input" type="file" name="id_card_image" accept="image/*"
+                         class="block w-full rounded-lg border p-2">
+
+                  <div class="flex items-center justify-end gap-2 pt-2">
+                    <button id="rc-cancel" type="button"
+                            class="px-4 py-2 rounded-full border hover:bg-gray-50">Cancel</button>
+                    <!-- Submit sends the WHOLE form including the file -->
+                    <button type="submit"
+                            class="px-5 py-2 rounded-full bg-green-600 text-white hover:bg-green-700">
+                      Upload & Sign Up
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- ===== End modal ===== -->
+
         </form>
 
         <!-- Already have account -->
         <p class="text-center text-sm text-gray-600 mt-4">
           Already have an account?
-         <a href="{% url 'login' %}"
-   class="inline-flex items-center justify-center bg-gray-800 text-white px-5 py-2 rounded-full hover:bg-black leading-none">
-  Log In
-</a>
-
+          <a href="{% url 'login' %}"
+             class="inline-flex items-center justify-center bg-gray-800 text-white px-5 py-2 rounded-full hover:bg-black leading-none">
+            Log In
+          </a>
         </p>
       </div>
     </div>
-  </main>
+  </div>
+
+  <script>
+    const form      = document.getElementById('rc-form');
+    const submitBtn = document.getElementById('rc-submit');
+
+    const modal     = document.getElementById('rc-id-modal');
+    const backdrop  = document.getElementById('rc-backdrop');
+    const cancelBtn = document.getElementById('rc-cancel');
+    const idInput   = document.getElementById('id_card_input');
+
+    function selectedRole(){
+      const r = document.querySelector('input[name="role"]:checked');
+      return r ? r.value : null;
+    }
+
+    function openModal() {
+      modal.classList.remove('hidden');        // show overlay (blur comes from backdrop)
+      modal.setAttribute('aria-hidden', 'false');
+      idInput.setAttribute('required', 'required');
+    }
+
+    function closeModal() {
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+      idInput.removeAttribute('required');
+      idInput.value = '';
+    }
+
+    // Main Sign Up button logic
+    submitBtn.addEventListener('click', () => {
+      const role = selectedRole();
+      if (!role) { alert('Please select a role.'); return; }
+
+      if (role === 'collector' || role === 'recycler') {
+        openModal();                 // ask for ID image
+      } else {
+        form.submit();               // normal signup
+      }
+    });
+
+    // Modal close actions
+    backdrop.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  </script>
 
 </body>
 </html>

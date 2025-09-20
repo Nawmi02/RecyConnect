@@ -13,8 +13,8 @@
   <header id="h", class="h-28 w-full">
     <div class="h-full max-w-7xl mx-auto px-4 flex items-center justify-between">
      <div class="h-full overflow-hidden flex items-center">
-       <img src="{% static 'LogoRecy.png' %}" alt="RecyConnect"
-       class="h-[120%] md:h-[140%] w-auto origin-left scale-110">
+       <img src="{% static 'RecyLogoNew.png' %}" alt="RecyConnect"
+       class="h-[100%] md:h-[100%] w-auto origin-left scale-90">
     </div>
 
       <a href="{% url 'login' %}"
@@ -150,18 +150,23 @@
 
 
   <!-- Did You Know -->
-  <section id="learn" class="py-16">
-    <div class="max-w-4xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
-      <div>
-        <h2 class="text-2xl font-bold text-green-700">Did You Know?</h2>
-        <p class="mt-4 text-gray-600">A single plastic bottle can take up to 450 years to fully decompose, breaking down into harmful microplastics that pollute soil, rivers, and oceans. These microplastics enter the food chain, threatening both wildlife and human health.</p>
-        <p class="mt-3 text-gray-700 font-medium">Register on RecyConnect today to explore more facts and learn how you can make a difference.</p>
-      </div>
-      <div>
-        <img src="{% static 'Recy.png' %}" alt="Plastic Waste" class="rounded-lg shadow" />
-      </div>
+<section id="learn" class="py-16">
+  <div class="max-w-4xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
+    <div class="text-justify">
+      <h2 class="text-2xl font-bold text-green-700 text-left md:text-justify">Did You Know?</h2>
+      <p class="mt-4 text-gray-600">
+        A single plastic bottle can take up to 450 years to fully decompose, breaking down into harmful microplastics that pollute soil, rivers, and oceans. These microplastics enter the food chain, threatening both wildlife and human health.
+      </p>
+      <p class="mt-3 text-gray-700 font-medium">
+        Register on RecyConnect today to explore more facts and learn how you can make a difference.
+      </p>
     </div>
-  </section>
+    <div class="flex justify-center">
+      <img src="{% static 'Recy.png' %}" alt="Plastic Waste" class="rounded-lg shadow max-h-72 object-contain" />
+    </div>
+  </div>
+</section>
+
 
 <!-- Footer -->
 <footer class="bg-gradient-to-r from-green-600 to-emerald-500 text-white">
@@ -169,7 +174,7 @@
 
     <!-- TOP: Logo + Tagline (left) -->
     <div class="flex items-center gap-4 mb-10">
-      <img src="{% static 'LogoRecy.png' %}" alt="RecyConnect logo" class="h-16 md:h-20 w-auto">
+      <img src="{% static 'LogoFooter.png' %}" alt="RecyConnect logo" class="h-16 md:h-20 w-auto">
       <p class="font-semibold text-xl md:text-2xl leading-tight">
         Your smart pathway to eco-friendly living.
       </p>
@@ -193,8 +198,8 @@
         <h4 class="text-xl font-semibold mb-3">Contact Us</h4>
         <p class="mt-2">
           <span class="font-bold">Mail:</span>
-          <a href="mailto:info_recyconnect@gmail.com" class="underline hover:text-white">
-            info_recyconnect@gmail.com
+          <a href="mailto:recyconnect314@gmail.com" class="underline hover:text-white">
+            recyconnect314@gmail.com
           </a>
         </p>
         <p class="mt-2">

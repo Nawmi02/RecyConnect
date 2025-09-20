@@ -23,5 +23,5 @@ from . import views
 
 urlpatterns = [
     path('', views.landingPage, name="landingPage"),
-    path("", include("User.urls"))
-]
+    path("", include("User.urls")),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

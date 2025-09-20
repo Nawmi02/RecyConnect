@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+  <body style="margin:0;padding:0;background:#f6fbf8;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.08);">
+            <!-- Header -->
+            <tr>
+              <td style="background:#009E60;color:#ffffff;padding:20px 24px;font-family:Arial,Helvetica,sans-serif;">
+                <h1 style="margin:0;font-size:20px;letter-spacing:.3px;">RecyConnect</h1>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding:24px 24px 8px 24px;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+                <p style="margin:0 0 10px 0;font-size:16px;">Hi {{ user.name|default:user.email }},</p>
+                <p style="margin:0 0 12px 0;line-height:1.6;font-size:15px;">
+                  We’re pleased to inform you that your <strong>{{ user.get_role_display }}</strong> account has been <strong>approved</strong>.
+                  You can now sign in and start using RecyConnect.
+                </p>
+                <p style="margin:0 0 16px 0;line-height:1.6;font-size:15px;">
+                  Together, we turn small actions into a cleaner, greener tomorrow.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Next steps -->
+            <tr>
+              <td style="padding:0 24px 8px 24px;font-family:Arial,Helvetica,sans-serif;color:#374151;">
+                <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;">
+                  <p style="margin:0 0 8px 0;font-weight:600;color:#111827;font-size:14px;">What’s next?</p>
+                  <ul style="margin:0 0 0 18px;padding:0;font-size:14px;line-height:1.7;">
+                    <li>Log in with your approved email address.</li>
+                    <li>Complete your profile (name, phone, address, social links) from your dashboard.</li>
+                    <li>Explore features and start contributing to responsible recycling.</li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+
+            <!-- CTA -->
+            <tr>
+              <td align="center" style="padding:18px 24px 24px 24px;">
+                <a href="{{ login_url }}" 
+                   style="display:inline-block;background:#009E60;color:#ffffff;text-decoration:none;
+                          font-family:Arial,Helvetica,sans-serif;font-weight:600;font-size:14px;
+                          padding:12px 22px;border-radius:999px;">
+                  Log in to RecyConnect
+                </a>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding:0 24px 24px 24px;font-family:Arial,Helvetica,sans-serif;color:#6b7280;font-size:12px;line-height:1.6;">
+                <p style="margin:0 0 6px 0;">
+                  If you didn’t request this account, please ignore this email or contact support.
+                </p>
+                <p style="margin:0;">© 2025 RecyConnect • Building cleaner communities together</p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- small spacer -->
+          <div style="height:18px"></div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
