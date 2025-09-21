@@ -1,0 +1,15 @@
+{% extends "Admin/adminbase.html" %}
+{% block content %}
+  <h2>Pending Users</h2>
+  {% for u in pending_users %}
+    <div style="margin:10px 0; padding:8px; border:1px solid #eee; border-radius:8px">
+      <div><b>{{ u.email }}</b> — {{ u.get_role_display }}</div>
+      <form method="post" action="{% url 'adminpanel:approve_user' u.pk %}" style="margin-top:6px">
+        {% csrf_token %}
+        <button type="submit">Approve & Send Email</button>
+      </form>
+    </div>
+  {% empty %}
+    <p>No pending users.</p>
+  {% endfor %}
+{% endblock %}

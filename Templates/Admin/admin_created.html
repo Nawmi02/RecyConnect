@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <body style="margin:0;padding:0;background:#f6fbf8;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600"
+                 style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.08);">
+
+            <!-- Header -->
+            <tr>
+              <td style="background:#009E60;color:#ffffff;padding:20px 24px;font-family:Arial,Helvetica,sans-serif;">
+                <h1 style="margin:0;font-size:20px;letter-spacing:.3px;">RecyConnect</h1>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding:24px 24px 8px 24px;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+                <p style="margin:0 0 10px 0;font-size:16px;">
+                  Hi {{ user.name|default:user.email }},
+                </p>
+                <p style="margin:0 0 12px 0;line-height:1.6;font-size:15px;">
+                  You’ve been granted <strong>Admin access</strong> to <strong>RecyConnect</strong>.
+                  With this role, you can manage user approvals, oversee platform activity,
+                  and help keep our community safe and effective.
+                </p>
+
+                {% if temp_password %}
+                <div style="margin:14px 0 0 0;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;">
+                  <p style="margin:0 0 6px 0;font-weight:600;color:#111827;font-size:14px;">Your temporary password</p>
+                  <p style="margin:0;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+                            background:#fff;border:1px dashed #e5e7eb;border-radius:8px;padding:10px 12px;display:inline-block;">
+                    {{ temp_password }}
+                  </p>
+                  <p style="margin:10px 0 0 0;font-size:12px;color:#6b7280;">
+                    For security, please change this password immediately after your first login.
+                  </p>
+                </div>
+                {% endif %}
+              </td>
+            </tr>
+
+            <!-- Next steps -->
+            <tr>
+              <td style="padding:0 24px 8px 24px;font-family:Arial,Helvetica,sans-serif;color:#374151;">
+                <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;">
+                  <p style="margin:0 0 8px 0;font-weight:600;color:#111827;font-size:14px;">What should I do next?</p>
+                  <ul style="margin:0 0 0 18px;padding:0;font-size:14px;line-height:1.7;">
+                    <li>Sign in with your admin email address.</li>
+                    <li>Update your profile details (name, phone, address, social links).</li>
+                    <li>Review pending user approvals and compliance checks.</li>
+                    <li>Configure notifications to stay on top of important actions.</li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+
+            <!-- CTA -->
+            <tr>
+              <td align="center" style="padding:18px 24px 24px 24px;">
+                 <a href="{% url 'adminpanel:dashboard' %}"
+                   style="display:inline-block;background:#009E60;color:#ffffff;text-decoration:none;
+                          font-family:Arial,Helvetica,sans-serif;font-weight:600;font-size:14px;
+                          padding:12px 22px;border-radius:999px;">
+                  Go to Admin Panel
+                </a>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding:0 24px 24px 24px;font-family:Arial,Helvetica,sans-serif;color:#6b7280;font-size:12px;line-height:1.6;">
+                <p style="margin:0 0 6px 0;">
+                  If you did not expect this invitation, please contact support immediately.
+                </p>
+                <p style="margin:0;">© 2025 RecyConnect • Building cleaner communities together</p>
+              </td>
+            </tr>
+          </table>
+
+          <div style="height:18px"></div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -6,7 +6,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from urllib.parse import urlparse
 
 
-# === NEW: Custom Manager ===
+# === Manager ===
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
@@ -17,13 +17,11 @@ class UserManager(BaseUserManager):
             raise ValueError("A password is required.")
 
         email = self.normalize_email(email)
-        # role না দিলে একটা ডিফল্ট দিন (আপনার ROLE_CHOICES-এর যেকোনোটা)
-        extra_fields.setdefault("role", extra_fields.get("role") or "household")
 
-        # সাধারণ ইউজার ডিফল্ট স্টেটাস
+        # sensible defaults
+        extra_fields.setdefault("role", extra_fields.get("role") or "household")
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
-        # আপনার অ্যাপলজিক: রেজিস্ট্রেশনের পর অ্যাডমিন approve করবে
         extra_fields.setdefault("is_active", False)
         extra_fields.setdefault("is_approved", False)
 
@@ -36,7 +34,6 @@ class UserManager(BaseUserManager):
         if not password:
             raise ValueError("Superusers must have a password.")
 
-        # সুপারইউজারের জন্য ফ্ল্যাগস
         extra_fields.setdefault("role", extra_fields.get("role") or "household")
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
@@ -54,35 +51,35 @@ class User(AbstractBaseUser):
         ("buyer",     "Buyer"),
     ]
 
-    # --- identity ---
+    # identity
     email = models.EmailField(unique=True, db_index=True)
     password = models.CharField(max_length=128)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
-    # --- Public profile ---
+    # public profile
     name = models.CharField(max_length=100, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     address = models.CharField(max_length=255, blank=True)
 
-    # Profile picture (আপনি আগেই অ্যাড করেছেন)
+    # profile picture (NOT required at registration)
     profile_image = models.ImageField(
         upload_to="user_avatars/%Y/%m/",
         blank=True, null=True,
-        help_text="Upload a clear profile photo (required at account setup for all accounts).",
+        help_text="Upload a clear profile photo.",
     )
 
-    # Google Maps link
+    # Google Maps link (NOT required at registration; validated if provided)
     map_url = models.URLField(
         blank=True,
-        help_text="Google Maps link to your address (required at account setup).",
+        help_text="Google Maps link to your address.",
     )
 
-    # Social links
+    # socials
     facebook = models.URLField(blank=True)
     instagram = models.URLField(blank=True)
     twitter  = models.URLField(blank=True)
 
-    # --- Admin status ---
+    # admin status
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
@@ -95,14 +92,13 @@ class User(AbstractBaseUser):
 
     date_joined = models.DateTimeField(default=timezone.now)
 
-    # Collector / Recycling Centre proof
+    # Collector / Recycling Centre proof (required at registration for those roles)
     id_card_image = models.ImageField(
         upload_to="user_ids/%Y/%m/",
         blank=True, null=True,
-        help_text="Please upload a clear image of an ID or visiting card (required for Collector and Recycling Centre accounts).",
+        help_text="ID/visiting card (required for Collector and Recycling Centre).",
     )
 
-    # === NEW: attach manager ===
     objects = UserManager()
 
     USERNAME_FIELD = "email"
@@ -111,7 +107,7 @@ class User(AbstractBaseUser):
     def __str__(self):
         return f"{self.email} ({self.role})"
 
-    # ---- helpers ----
+    # helpers
     def _is_valid_google_maps_url(self) -> bool:
         if not self.map_url:
             return False
@@ -124,39 +120,37 @@ class User(AbstractBaseUser):
             (host.endswith(".google.com") and path.startswith("/maps"))
         )
 
-    # ---- validations at creation/update (registration time) ----
+    # validations at save-time (keep light so registration passes)
     def clean(self):
         super().clean()
         errors = {}
 
-        # Profile image required (আপনার লজিক অনুযায়ী)
-        if not self.profile_image:
-            errors["profile_image"] = "A profile picture is required at account setup."
+        if self.map_url and not self._is_valid_google_maps_url():
+            errors["map_url"] = (
+                "Please provide a valid Google Maps URL "
+                "(e.g., https://maps.google.com/... or https://maps.app.goo.gl/...)."
+            )
 
-        # Non-admin users must provide map_url
-        if not (self.is_staff or self.is_superuser):
-            if not self.map_url:
-                errors["map_url"] = "A Google Maps link to your address is required at account setup."
-            elif not self._is_valid_google_maps_url():
-                errors["map_url"] = "Please provide a valid Google Maps URL (e.g., https://maps.google.com/... or https://maps.app.goo.gl/...)."
-
-        # Collector/Recycler need ID card
+        # Keep hard requirement for collectors/recyclers at registration:
         if self.role in ("collector", "recycler") and not self.id_card_image:
-            errors["id_card_image"] = "An ID or visiting card image is required for Collector and Recycling Centre accounts."
+            errors["id_card_image"] = (
+                "An ID or visiting card image is required for Collector and Recycling Centre accounts."
+            )
 
         if errors:
             raise ValidationError(errors)
 
-    # ---- approval  ----
+    # approval gate 
     def approve(self, by_user):
         approve_errors = {}
+        # Now enforce required fields at approval time:
         if not self.profile_image:
             approve_errors["profile_image"] = "A profile picture is required before approval."
         if not (self.is_staff or self.is_superuser):
             if not self.map_url or not self._is_valid_google_maps_url():
                 approve_errors["map_url"] = "A valid Google Maps URL is required before approval."
         if self.role in ("collector", "recycler") and not self.id_card_image:
-            approve_errors["id_card_image"] = "An ID or visiting card image is required before approval."
+            approve_errors["id_card_image"] = "An ID/visiting card image is required before approval."
 
         if approve_errors:
             raise ValidationError(approve_errors)

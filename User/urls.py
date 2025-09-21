@@ -2,6 +2,8 @@
 from django.urls import path
 from . import views as user_views
 
+app_name = "user"
+
 urlpatterns = [
     # auth
     path("register/", user_views.register_view, name="register"),
@@ -14,7 +16,4 @@ urlpatterns = [
     path("dashboard/buyer/",     user_views.buyer_dashboard,     name="dash_buyer"),
     path("dashboard/recycler/",  user_views.recycler_dashboard,  name="dash_recycler"),
     path("dashboard/collector/", user_views.collector_dashboard, name="dash_collector"),
-
-    # custom admin panel (superuser only)
-    path("admin/", user_views.admin_panel, name="admin_panel"),
 ]

@@ -1,0 +1,149 @@
+{% extends "Admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Pending Approvals · RecyConnect{% endblock %}
+{% block active_menu %}dashboard{% endblock %}
+
+{% block content %}
+<style>
+  .ap-card{
+    background:#fff;border:1px solid #e5e7eb;border-radius:14px;
+    padding:16px; box-shadow:0 4px 14px rgba(0,0,0,.04);
+  }
+  .ap-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .ap-title{ font-weight:700; font-size:18px }
+  .ap-table{
+    width:100%; border-collapse:separate; border-spacing:0;
+  }
+  .ap-table th, .ap-table td{
+    text-align:left; padding:12px 10px; border-bottom:1px solid #eef2f6;
+    vertical-align:middle;
+  }
+  .ap-table thead th{
+    background:#f8fafc; font-size:13px; text-transform:uppercase; letter-spacing:.4px;
+  }
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600;
+  }
+  .pill-household{ color:#065f46; background:#d1fae5 }
+  .pill-collector{ color:#1e40af; background:#dbeafe }
+  .pill-recycler{ color:#7c2d12; background:#ffedd5 }
+  .pill-buyer{ color:#065f46; background:#dcfce7 }
+  .ap-actions{ display:flex; gap:8px }
+  .btn{
+    border:none; cursor:pointer; font-weight:600; border-radius:10px; padding:8px 12px;
+  }
+  .btn-accept{ background:#16a34a; color:#fff }
+  .btn-accept:hover{ filter:brightness(0.95) }
+  .btn-decline{ background:#ef4444; color:#fff }
+  .btn-decline:hover{ filter:brightness(0.95) }
+  .avatar-sm{
+    width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid #e5e7eb;
+  }
+  .id-thumb{
+    width:58px; height:42px; object-fit:cover; border-radius:8px; border:1px solid #e5e7eb;
+  }
+  .empty{
+    padding:22px; text-align:center; color:#6b7280; font-weight:500;
+    border:1px dashed #d1d5db; border-radius:12px; background:#fafafa;
+  }
+</style>
+
+<div class="ap-card">
+  <div class="ap-head">
+    <div class="ap-title">Pending User Approvals</div>
+    <div style="font-size:13px;color:#6b7280">
+      Total: {{ pending_users|length }}
+    </div>
+  </div>
+
+  {% if messages %}
+    <ul style="margin:0 0 10px 0; padding-left:18px;">
+      {% for m in messages %}
+        <li style="color:{% if m.tags == 'success' %}#15803d{% elif m.tags == 'warning' %}#b45309{% else %}#b91c1c{% endif %}; font-weight:600;">
+          {{ m }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if pending_users %}
+  <div style="overflow-x:auto;">
+    <table class="ap-table">
+      <thead>
+        <tr>
+          <th>Profile</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Registered</th>
+          <th>Map URL</th>
+          <th>ID/Visiting Card</th>
+          <th style="text-align:right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in pending_users %}
+        <tr>
+          <td>
+            {% if u.profile_image %}
+              <img class="avatar-sm" src="{{ u.profile_image.url }}" alt="{{ u.email }}">
+            {% else %}
+              <img class="avatar-sm" src="{% static 'icons/avatar-placeholder.png' %}" alt="">
+            {% endif %}
+          </td>
+          <td style="font-weight:600">{{ u.email }}</td>
+          <td>
+            <span class="pill pill-{{ u.role }}">
+              {{ u.get_role_display }}
+            </span>
+          </td>
+          <td>{{ u.date_joined|date:"M d, Y · H:i" }}</td>
+          <td>
+            {% if u.map_url %}
+              <a href="{{ u.map_url }}" target="_blank" rel="noopener" style="color:#2563eb;">Open</a>
+            {% else %}
+              <span style="color:#9ca3af">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.requires_id_image %}
+              {% if u.id_card_image %}
+                <a href="{{ u.id_card_image.url }}" target="_blank" title="View ID">
+                  <img class="id-thumb" src="{{ u.id_card_image.url }}" alt="ID">
+                </a>
+              {% else %}
+                <span style="color:#b91c1c; font-weight:600;">Required</span>
+              {% endif %}
+            {% else %}
+              <span style="color:#9ca3af">N/A</span>
+            {% endif %}
+          </td>
+  <td style="text-align:right">
+    <div class="ap-actions">
+      <!-- Approve -->
+      <form action="{% url 'adminpanel:approve_user' u.pk %}" method="post">
+        {% csrf_token %}
+        <button class="btn btn-accept" type="submit">Accept</button>
+      </form>
+
+      <!-- Decline -->
+      <form action="{% url 'adminpanel:decline_user' u.pk %}" method="post">
+       {% csrf_token %}
+       <button class="btn btn-decline" type="submit">Decline</button>
+      </form>
+    </div>
+  </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty">No pending accounts to approve 🎉</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -19,7 +19,7 @@
     ×
   </a>
 
-  <!-- Page content (no blur class toggled here) -->
+  <!-- Page content -->
   <div id="rc-root" class="min-h-screen flex justify-center items-start pt-32 pb-12">
 
     <div class="bg-white/95 w-full max-w-sm rounded-2xl shadow-xl overflow-hidden">
@@ -46,7 +46,7 @@
         {% endif %}
 
         <!-- Form -->
-        <form id="rc-form" method="POST" action="{% url 'register' %}"
+        <form id="rc-form" method="POST" action="{% url 'user:register' %}"
               class="mt-5 space-y-3" enctype="multipart/form-data" novalidate>
           {% csrf_token %}
 
@@ -55,14 +55,48 @@
                  class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
 
           <!-- Password -->
-          <input type="password" name="password1" required placeholder="Password"
-                 minlength="8" autocomplete="new-password"
-                 class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
+          <div class="relative">
+            <input type="password" id="password1" name="password1" required placeholder="Password"
+                   minlength="8" autocomplete="new-password"
+                   class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
+            <button type="button" onclick="togglePassword('password1', this)"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <!-- eye icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                   stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 
+                         7.36 4.5 12 4.5c4.638 0 8.573 3.007 
+                         9.963 7.178.07.207.07.431 0 
+                         .639C20.577 16.49 16.64 19.5 
+                         12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
 
           <!-- Confirm Password -->
-          <input type="password" name="password2" required placeholder="Confirm password"
-                 minlength="8" autocomplete="new-password"
-                 class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
+          <div class="relative">
+            <input type="password" id="password2" name="password2" required placeholder="Confirm password"
+                   minlength="8" autocomplete="new-password"
+                   class="w-full px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-green-400" />
+            <button type="button" onclick="togglePassword('password2', this)"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <!-- eye icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                   stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 
+                         7.36 4.5 12 4.5c4.638 0 8.573 3.007 
+                         9.963 7.178.07.207.07.431 0 
+                         .639C20.577 16.49 16.64 19.5 
+                         12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
 
           <!-- Role -->
           <div class="pt-2">
@@ -87,18 +121,15 @@
             </div>
           </div>
 
-          <!-- Main Sign Up (we intercept for collector/recycler) -->
+          <!-- Main Sign Up -->
           <button id="rc-submit" type="button"
                   class="w-full bg-green-600 text-white py-2 rounded-full mt-2 hover:bg-green-700">
             Sign Up
           </button>
 
-          <!-- ===== Modal (kept inside form so the file submits with form) ===== -->
+          <!-- Modal -->
           <div id="rc-id-modal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
-            <!-- Backdrop that blurs the page (widget stays sharp) -->
             <div id="rc-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm md:backdrop-blur"></div>
-
-            <!-- Centered modal card -->
             <div class="absolute inset-0 flex items-center justify-center p-4">
               <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden">
                 <div class="px-6 py-4 border-b">
@@ -109,15 +140,12 @@
                     For <b>Collector</b> and <b>Recycling Centre</b> accounts only.
                   </p>
                 </div>
-
                 <div class="px-6 py-5 space-y-4">
                   <input id="id_card_input" type="file" name="id_card_image" accept="image/*"
                          class="block w-full rounded-lg border p-2">
-
                   <div class="flex items-center justify-end gap-2 pt-2">
                     <button id="rc-cancel" type="button"
                             class="px-4 py-2 rounded-full border hover:bg-gray-50">Cancel</button>
-                    <!-- Submit sends the WHOLE form including the file -->
                     <button type="submit"
                             class="px-5 py-2 rounded-full bg-green-600 text-white hover:bg-green-700">
                       Upload & Sign Up
@@ -127,14 +155,12 @@
               </div>
             </div>
           </div>
-          <!-- ===== End modal ===== -->
-
         </form>
 
         <!-- Already have account -->
         <p class="text-center text-sm text-gray-600 mt-4">
           Already have an account?
-          <a href="{% url 'login' %}"
+          <a href="{% url 'user:login' %}"
              class="inline-flex items-center justify-center bg-gray-800 text-white px-5 py-2 rounded-full hover:bg-black leading-none">
             Log In
           </a>
@@ -143,10 +169,49 @@
     </div>
   </div>
 
+  <!-- JS -->
   <script>
+    // Toggle password show/hide
+    function togglePassword(id, btn) {
+      const field = document.getElementById(id);
+      const eyeOpen = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 
+                   7.36 4.5 12 4.5c4.638 0 8.573 3.007 
+                   9.963 7.178.07.207.07.431 0 
+                   .639C20.577 16.49 16.64 19.5 
+                   12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>`;
+      const eyeSlash = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3.98 8.223A10.477 10.477 0 002.036 12.32a1.012 
+                   1.012 0 000 .639C3.423 16.49 7.36 19.5 
+                   12 19.5c1.78 0 3.45-.386 
+                   4.958-1.077M6.228 6.228A10.451 
+                   10.451 0 0112 4.5c4.638 0 
+                   8.573 3.007 9.963 7.178.07.207.07.431 
+                   0 .639a10.45 10.45 0 01-4.306 
+                   5.223M6.228 6.228L3 3m3.228 
+                   3.228l12.544 12.544M21 21l-3-3" />
+        </svg>`;
+      if (field.type === "password") {
+        field.type = "text";
+        btn.innerHTML = eyeSlash;
+      } else {
+        field.type = "password";
+        btn.innerHTML = eyeOpen;
+      }
+    }
+
+    // Modal logic
     const form      = document.getElementById('rc-form');
     const submitBtn = document.getElementById('rc-submit');
-
     const modal     = document.getElementById('rc-id-modal');
     const backdrop  = document.getElementById('rc-backdrop');
     const cancelBtn = document.getElementById('rc-cancel');
@@ -156,37 +221,29 @@
       const r = document.querySelector('input[name="role"]:checked');
       return r ? r.value : null;
     }
-
     function openModal() {
-      modal.classList.remove('hidden');        // show overlay (blur comes from backdrop)
+      modal.classList.remove('hidden');
       modal.setAttribute('aria-hidden', 'false');
       idInput.setAttribute('required', 'required');
     }
-
     function closeModal() {
       modal.classList.add('hidden');
       modal.setAttribute('aria-hidden', 'true');
       idInput.removeAttribute('required');
       idInput.value = '';
     }
-
-    // Main Sign Up button logic
     submitBtn.addEventListener('click', () => {
       const role = selectedRole();
       if (!role) { alert('Please select a role.'); return; }
-
       if (role === 'collector' || role === 'recycler') {
-        openModal();                 // ask for ID image
+        openModal();
       } else {
-        form.submit();               // normal signup
+        form.submit();
       }
     });
-
-    // Modal close actions
     backdrop.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
   </script>
-
 </body>
 </html>

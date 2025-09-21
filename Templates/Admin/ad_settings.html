@@ -1,0 +1,177 @@
+{% extends "Admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Settings · RecyConnect{% endblock %}
+{% block content %}
+
+<style>
+  .set-wrap{
+    min-height: 60vh; display:flex; flex-direction:column; align-items:center; gap:16px;
+  }
+  .set-card{
+    width:100%; max-width:820px; background:#fff; border:1px solid #e5e7eb;
+    border-radius:16px; box-shadow:0 8px 28px rgba(0,0,0,.06);
+    padding:20px;
+  }
+  .set-head{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
+  }
+  .set-title{ font-size:20px; font-weight:800; color:#065f46 }
+  .grid-2{
+    display:grid; grid-template-columns:1fr 1fr; gap:14px;
+  }
+  .grid-1{ display:grid; gap:14px; }
+  .lbl{ font-size:13px; font-weight:600; color:#374151; margin-bottom:6px }
+  .inp, .txt{
+    width:100%; border:1px solid #e5e7eb; border-radius:12px; padding:10px 40px 10px 12px;
+    outline:none; font-size:14px;
+  }
+  .inp:focus, .txt:focus{ border-color:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.15) }
+  .row{ margin-bottom:6px; position:relative; }
+  .help{ font-size:12px; color:#6b7280; margin-top:4px }
+  .avatar-box{ display:flex; gap:14px; align-items:center; }
+  .avatar-prev{
+    width:64px; height:64px; border-radius:50%; object-fit:cover; border:1px solid #e5e7eb;
+  }
+  .btn-save{
+    display:inline-flex; align-items:center; justify-content:center;
+    background:#16a34a; color:#fff; border:none; border-radius:999px;
+    padding:12px 20px; font-weight:700; cursor:pointer;
+  }
+  .btn-save:hover{ filter:brightness(.95) }
+  .msgs{ margin:8px 0 12px 0; }
+  .msg{
+    padding:10px 12px; border-radius:10px; font-weight:600; margin-bottom:6px;
+  }
+  .msg-ok{ background:#eaf7ef; color:#065f46; border:1px solid #bbf7d0 }
+  .msg-err{ background:#fee2e2; color:#991b1b; border:1px solid #fecaca }
+  .eye-btn{
+    position:absolute; right:12px; top:36px; cursor:pointer; color:#6b7280;
+  }
+  .eye-btn:hover{ color:#111; }
+  @media (max-width:760px){ .grid-2{ grid-template-columns:1fr; } }
+</style>
+
+<div class="set-wrap">
+
+  {% if messages %}
+    <div class="msgs" style="width:100%; max-width:820px;">
+      {% for m in messages %}
+        <div class="msg {% if m.tags == 'success' %}msg-ok{% else %}msg-err{% endif %}">{{ m }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- PROFILE CARD -->
+  <div class="set-card">
+    <div class="set-head">
+      <div class="set-title">Admin Settings</div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'adminpanel:settings' %}">
+      {% csrf_token %}
+      <input type="hidden" name="intent" value="profile">
+
+      <!-- Profile picture -->
+      <div class="row">
+        <div class="lbl">Profile picture</div>
+        <div class="avatar-box">
+          {% if request.user.profile_image %}
+            <img class="avatar-prev" src="{{ request.user.profile_image.url }}" alt="Avatar">
+          {% else %}
+            <img class="avatar-prev" src="{% static 'icons/avatar-placeholder.png' %}" alt="Avatar">
+          {% endif %}
+          <input class="inp" type="file" name="profile_image" accept="image/*">
+        </div>
+        <div class="help">Upload a clear square photo (JPG/PNG).</div>
+      </div>
+
+      <!-- Basic info -->
+      <div class="grid-2">
+        <div class="row">
+          <div class="lbl">Full name</div>
+          <input class="inp" name="name" type="text" value="{{ request.user.name|default:'' }}" placeholder="Your name">
+        </div>
+        <div class="row">
+          <div class="lbl">Phone</div>
+          <input class="inp" name="phone" type="text" value="{{ request.user.phone|default:'' }}" placeholder="+880...">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="lbl">Address</div>
+        <textarea class="txt" name="address" rows="3" placeholder="Street, City, ZIP">{{ request.user.address|default:'' }}</textarea>
+      </div>
+
+      <!-- Socials -->
+      <div class="grid-2">
+        <div class="row">
+          <div class="lbl">Facebook (optional)</div>
+          <input class="inp" name="facebook" type="url" value="{{ request.user.facebook|default:'' }}" placeholder="https://facebook.com/yourpage">
+        </div>
+        <div class="row">
+          <div class="lbl">Instagram (optional)</div>
+          <input class="inp" name="instagram" type="url" value="{{ request.user.instagram|default:'' }}" placeholder="https://instagram.com/yourhandle">
+        </div>
+      </div>
+      <div class="row">
+        <div class="lbl">Twitter / X (optional)</div>
+        <input class="inp" name="twitter" type="url" value="{{ request.user.twitter|default:'' }}" placeholder="https://x.com/yourhandle">
+      </div>
+
+      <div style="margin-top:14px; display:flex; justify-content:flex-end;">
+        <button type="submit" class="btn-save">Save changes</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- PASSWORD CARD -->
+  <div class="set-card">
+    <div class="set-head">
+      <div class="set-title">Change Password</div>
+    </div>
+
+    <form method="post" action="{% url 'adminpanel:settings' %}">
+      {% csrf_token %}
+      <input type="hidden" name="intent" value="password">
+
+      <div class="grid-1">
+        <div class="row">
+          <div class="lbl">Old password</div>
+          <input id="oldPass" class="inp" name="old_password" type="password" autocomplete="current-password" required>
+          <span class="eye-btn" onclick="togglePass('oldPass', this)">👁</span>
+        </div>
+        <div class="row">
+          <div class="lbl">New password</div>
+          <input id="newPass" class="inp" name="new_password" type="password" minlength="8" autocomplete="new-password" required>
+          <span class="eye-btn" onclick="togglePass('newPass', this)">👁</span>
+          <div class="help">Use at least 8 characters. Mix letters, numbers & symbols for stronger security.</div>
+        </div>
+        <div class="row">
+          <div class="lbl">Confirm new password</div>
+          <input id="confirmPass" class="inp" name="confirm_password" type="password" minlength="8" autocomplete="new-password" required>
+          <span class="eye-btn" onclick="togglePass('confirmPass', this)">👁</span>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; display:flex; justify-content:flex-end;">
+        <button type="submit" class="btn-save">Save password</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function togglePass(id, el){
+    const inp = document.getElementById(id);
+    if(inp.type === "password"){
+      inp.type = "text";
+      el.textContent = "🙈";  // show state
+    } else {
+      inp.type = "password";
+      el.textContent = "👁";  // hide state
+    }
+  }
+</script>
+
+{% endblock %}

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'RecyCon',
+    'AdminPanel',
     'User.apps.UserConfig',
     'Marketplace',
     'Education',

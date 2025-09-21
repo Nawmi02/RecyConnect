@@ -1,0 +1,159 @@
+{% extends "Admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Create Admin · RecyConnect{% endblock %}
+
+{% block content %}
+<style>
+  .center-wrap{
+    min-height: 60vh;
+    display:grid;
+    place-items:center;
+  }
+  .card{
+    width:100%;
+    max-width:560px;
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.06);
+    overflow:hidden;
+  }
+  .card-head{
+    padding:18px 20px;
+    background:linear-gradient(90deg, #16a34a, #10b981);
+    color:#fff;
+  }
+  .card-title{
+    margin:0;
+    font-size:18px;
+    font-weight:800;
+    letter-spacing:.2px;
+  }
+  .card-sub{
+    margin:4px 0 0 0;
+    font-size:13px;
+    opacity:.95;
+  }
+  .card-body{ padding:20px; }
+  .help{
+    margin:0 0 14px 0;
+    font-size:13px;
+    color:#6b7280;
+  }
+  .field{
+    margin-bottom:12px;
+  }
+  .label{
+    display:block;
+    font-weight:700;
+    font-size:13px;
+    margin:0 0 6px 0;
+    color:#111827;
+  }
+  .input, .checkbox-row input[type="checkbox"]{
+    accent-color: var(--brand);
+  }
+  .input{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    outline:none;
+    font-size:14px;
+    transition:border .15s ease, box-shadow .15s ease;
+  }
+  .input:focus{
+    border-color:#86efac;
+    box-shadow:0 0 0 4px rgba(22,163,74,.15);
+  }
+  .checkbox-row{
+    display:flex; align-items:center; gap:10px;
+    padding:8px 10px;
+    border:1px dashed #e5e7eb;
+    border-radius:12px;
+    background:#fafafa;
+    margin-top:2px;
+  }
+  .checkbox-row label{
+    font-size:14px; color:#111827; font-weight:600; cursor:pointer;
+  }
+  .actions{
+    display:flex; align-items:center; gap:10px; margin-top:16px;
+  }
+  .btn{
+    appearance:none; border:none; cursor:pointer; font-weight:800;
+    border-radius:999px; padding:11px 18px; font-size:14px;
+    transition:transform .06s ease, filter .15s ease, box-shadow .15s ease;
+  }
+  .btn:active{ transform:translateY(1px) }
+  .btn-primary{
+    background:var(--brand); color:#fff;
+    box-shadow:0 6px 16px rgba(25,179,75,.25);
+  }
+  .btn-primary:hover{ filter:brightness(0.96) }
+  .btn-ghost{
+    background:#fff; color:#111827; border:1px solid #e5e7eb;
+  }
+  .msg-list{
+    margin:0 0 12px 0; padding:0; list-style:none;
+  }
+  .msg{
+    font-size:13px; font-weight:700; padding:10px 12px; border-radius:10px; margin:0 0 8px 0;
+  }
+  .msg-error{ background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; }
+  .msg-success{ background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
+  .msg-warning{ background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+</style>
+
+<div class="center-wrap">
+  <div class="card">
+    <div class="card-head">
+      <h1 class="card-title">Create Admin</h1>
+      <p class="card-sub">We’ll generate a secure password and email the credentials.</p>
+    </div>
+
+    <div class="card-body">
+      {% if messages %}
+        <ul class="msg-list">
+          {% for m in messages %}
+            <li class="msg {% if m.tags == 'error' %}msg-error{% elif m.tags == 'warning' %}msg-warning{% else %}msg-success{% endif %}">
+              {{ m }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <p class="help">
+        Tip: Tick “Make Superuser” only for full system access. Normal admins (staff) can manage users and content.
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="field">
+          <label class="label" for="email">Email</label>
+          <input id="email" name="email" type="email" required class="input" placeholder="admin@example.com" autocomplete="email">
+        </div>
+
+        <div class="field">
+          <label class="label" for="name">Name <span style="font-weight:600;color:#9ca3af">(optional)</span></label>
+          <input id="name" name="name" type="text" class="input" placeholder="Admin display name">
+        </div>
+
+        <div class="field">
+          <div class="checkbox-row">
+            <input id="is_superuser" name="is_superuser" type="checkbox">
+            <label for="is_superuser">Make Superuser</label>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary">Create & Send Email</button>
+          <a class="btn btn-ghost" href="{% url 'adminpanel:dashboard' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

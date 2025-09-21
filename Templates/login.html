@@ -47,16 +47,34 @@
       {% endif %}
 
       <!-- Form -->
-      <form method="POST" action="{% url 'login' %}" class="space-y-4">
+      <form method="POST" action="{% url 'user:login' %}" class="space-y-4">
         {% csrf_token %}
 
         <input type="email" name="email" placeholder="Email" autocomplete="email" required
                class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
 
-        <input type="password" name="password" placeholder="Password"
-               minlength="8" title="Minimum 8 characters"
-               autocomplete="current-password" required
-               class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
+        <!-- Password field with eye toggle -->
+        <div class="relative">
+          <input type="password" id="login-password" name="password" placeholder="Password"
+                 minlength="8" title="Minimum 8 characters"
+                 autocomplete="current-password" required
+                 class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
+          <button type="button" onclick="togglePassword('login-password', this)"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <!-- eye icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                 stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 
+                       7.36 4.5 12 4.5c4.638 0 8.573 3.007 
+                       9.963 7.178.07.207.07.431 0 
+                       .639C20.577 16.49 16.64 19.5 
+                       12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+        </div>
 
         <div class="text-right text-sm">
           <button type="button" id="rc-forgot" class="text-gray-500 hover:underline">
@@ -72,7 +90,7 @@
 
       <p class="text-center text-sm mt-5 text-gray-600">
         Don’t have an account?
-        <a href="{% url 'register' %}" class="text-green-600 font-semibold hover:underline">Sign Up</a>
+        <a href="{% url 'user:register' %}" class="text-green-600 font-semibold hover:underline">Sign Up</a>
       </p>
     </div>
   </div>
@@ -89,17 +107,53 @@
           <h3 class="text-lg font-semibold text-green-700">Reset your password</h3>
         </div>
 
-        <form method="POST" action="{% url 'set_password' %}" class="px-6 py-5 space-y-3">
+        <form method="POST" action="{% url 'user:set_password' %}" class="px-6 py-5 space-y-3">
           {% csrf_token %}
           <input type="hidden" name="email" id="rc-modal-email">
 
-          <input type="password" name="new_password" placeholder="New password"
-                 minlength="8" title="Minimum 8 characters" required autocomplete="new-password"
-                 class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
+          <!-- New password -->
+          <div class="relative">
+            <input type="password" id="new-password" name="new_password" placeholder="New password"
+                   minlength="8" title="Minimum 8 characters" required autocomplete="new-password"
+                   class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
+            <button type="button" onclick="togglePassword('new-password', this)"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <!-- eye icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                   stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 
+                         7.36 4.5 12 4.5c4.638 0 8.573 3.007 
+                         9.963 7.178.07.207.07.431 0 
+                         .639C20.577 16.49 16.64 19.5 
+                         12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
 
-          <input type="password" name="confirm_password" placeholder="Confirm password"
-                 minlength="8" title="Minimum 8 characters" required autocomplete="new-password"
-                 class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
+          <!-- Confirm password -->
+          <div class="relative">
+            <input type="password" id="confirm-password" name="confirm_password" placeholder="Confirm password"
+                   minlength="8" title="Minimum 8 characters" required autocomplete="new-password"
+                   class="w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-400 outline-none">
+            <button type="button" onclick="togglePassword('confirm-password', this)"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <!-- eye icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                   stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 
+                         7.36 4.5 12 4.5c4.638 0 8.573 3.007 
+                         9.963 7.178.07.207.07.431 0 
+                         .639C20.577 16.49 16.64 19.5 
+                         12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
 
           <div class="flex items-center justify-end gap-2 pt-2">
             <button type="button" id="rc-cancel"
@@ -114,8 +168,47 @@
     </div>
   </div>
 
-  <!-- Tiny JS (no external libs) -->
+  <!-- JS -->
   <script>
+    // Eye toggle function
+    function togglePassword(id, btn) {
+      const field = document.getElementById(id);
+      const eyeOpen = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 
+                   7.36 4.5 12 4.5c4.638 0 8.573 3.007 
+                   9.963 7.178.07.207.07.431 0 
+                   .639C20.577 16.49 16.64 19.5 
+                   12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>`;
+      const eyeSlash = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3.98 8.223A10.477 10.477 0 002.036 12.32a1.012 
+                   1.012 0 000 .639C3.423 16.49 7.36 19.5 
+                   12 19.5c1.78 0 3.45-.386 
+                   4.958-1.077M6.228 6.228A10.451 
+                   10.451 0 0112 4.5c4.638 0 
+                   8.573 3.007 9.963 7.178.07.207.07.431 
+                   0 .639a10.45 10.45 0 01-4.306 
+                   5.223M6.228 6.228L3 3m3.228 
+                   3.228l12.544 12.544M21 21l-3-3" />
+        </svg>`;
+      if (field.type === "password") {
+        field.type = "text";
+        btn.innerHTML = eyeSlash;
+      } else {
+        field.type = "password";
+        btn.innerHTML = eyeOpen;
+      }
+    }
+
+    // Modal logic
     const root = document.getElementById('rc-root');
     const modal = document.getElementById('rc-modal');
     const openBtn = document.getElementById('rc-forgot');

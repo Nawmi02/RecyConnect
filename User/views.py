@@ -1,4 +1,3 @@
-# User/views.py
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, get_user_model
@@ -7,14 +6,16 @@ from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
-# --- role -> where to go after login ---
+# Where to send normal users after login
 ROLE_REDIRECTS = {
     "household": "dash_household",
     "buyer":     "dash_buyer",
     "recycler":  "dash_recycler",   # Recycling Centre
     "collector": "dash_collector",
 }
-ADMIN_PANEL_NAME = "admin_panel"    # superuser fallback
+
+# Superuser/staff land here (AdminPanel app, namespaced)
+ADMIN_PANEL_NAME = "adminpanel:dashboard"
 
 
 # ---------------- Register ----------------
@@ -24,7 +25,7 @@ def register_view(request):
         password1 = request.POST.get("password1") or ""
         password2 = request.POST.get("password2") or ""
         role = (request.POST.get("role") or "").strip()
-        id_image = request.FILES.get("id_card_image")  # (collector/recycler modal)
+        id_image = request.FILES.get("id_card_image")  # collector/recycler only
 
         # basic validation
         if not email or not role:
@@ -43,7 +44,7 @@ def register_view(request):
             messages.error(request, "Email is already registered.")
             return redirect("register")
 
-        # enforce ID image at sign-up for collector/recycler
+        # enforce ID image for collector/recycler
         if role in ("collector", "recycler") and not id_image:
             messages.error(
                 request,
@@ -58,7 +59,7 @@ def register_view(request):
             user.id_card_image = id_image
 
         try:
-            user.full_clean()  # field + model.clean()
+            user.full_clean()  # field validators + model.clean()
             user.save()
         except ValidationError as e:
             for field, errs in e.message_dict.items():
@@ -71,8 +72,9 @@ def register_view(request):
             "Registration successful. Your account is pending admin review. "
             "Please wait for an approval email before logging in."
         )
-        return redirect("login")
+        return redirect("user:login")
 
+    # GET
     return render(request, "register.html")
 
 
@@ -103,20 +105,21 @@ def login_view(request):
 
         login(request, user)
 
-        # superuser => custom admin panel
-        if user.is_superuser:
+        # staff/superusers -> AdminPanel
+        if user.is_superuser or user.is_staff:
             return redirect(ADMIN_PANEL_NAME)
 
-        # normal users => role dashboards
+        # normal users -> role dashboards
         return redirect(ROLE_REDIRECTS.get(user.role, ADMIN_PANEL_NAME))
 
+    # GET
     return render(request, "login.html")
 
 
 # ---------------- Password change (modal POST) ----------------
 def set_password_view(request):
     if request.method != "POST":
-        return redirect("login")
+        return redirect("user:login")
 
     email = (request.POST.get("email") or "").strip().lower()
     new_password = request.POST.get("new_password") or ""
@@ -124,38 +127,38 @@ def set_password_view(request):
 
     if not email:
         messages.error(request, "Email is required.")
-        return redirect("login")
+        return redirect("user:login")
 
     if len(new_password) < 8:
         messages.error(request, "Password must be at least 8 characters.")
-        return redirect("login")
+        return redirect("user:login")
 
     if new_password != confirm_password:
         messages.error(request, "Passwords do not match.")
-        return redirect("login")
+        return redirect("user:login")
 
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
         messages.error(request, "No account found for that email.")
-        return redirect("login")
+        return redirect("user:login")
 
     user.set_password(new_password)
     user.save(update_fields=["password"])
     messages.success(request, "Password changed successfully. Please log in.")
-    return redirect("login")
+    return redirect("user:login")
 
 
 # ---------------- Logout ----------------
 def logout_view(request):
     logout(request)
-    return redirect("login")
+    return redirect("user:login")
 
 
 # ---------------- Role guard ----------------
 def role_required(allowed_roles=()):
     def decorator(view_func):
-        @login_required(login_url="login")
+        @login_required(login_url="user:login")
         def _wrapped(request, *args, **kwargs):
             user = request.user
             if getattr(user, "is_superuser", False):
@@ -168,7 +171,7 @@ def role_required(allowed_roles=()):
     return decorator
 
 
-# ---------------- Dashboards (templates) ----------------
+# ---------------- Dashboards ----------------
 @role_required(("household",))
 def household_dashboard(request):
     return render(request, "base.html", {"user": request.user})
@@ -179,16 +182,8 @@ def buyer_dashboard(request):
 
 @role_required(("recycler",))
 def recycler_dashboard(request):
-    return render(request, "buyer.html", {"user": request.user})
+    return render(request, "recycler.html", {"user": request.user})  # <-- fixed
 
 @role_required(("collector",))
 def collector_dashboard(request):
     return render(request, "collector.html", {"user": request.user})
-
-@login_required(login_url="login")
-def admin_panel(request):
-    if not request.user.is_superuser:
-        messages.error(request, "You are not authorized to view that page.")
-        return redirect("login")
-    # NOTE: template path is case-sensitive on Linux; keep folder name consistent
-    return render(request, "admin_base.html", {"user": request.user})
