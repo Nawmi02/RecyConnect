@@ -21,8 +21,8 @@ from . import views
 
 urlpatterns = [
     path("", views.landingPage, name="landingPage"),
-
-
-    path("", include(("User.urls", "user"), namespace="user")),
+    path("user/", include(("User.urls", "user"), namespace="user")),
     path("panel/", include(("AdminPanel.urls", "adminpanel"), namespace="adminpanel")),
+    path("household/", include(("Household.urls", "household"), namespace="household")),
+    path("education/", include(("Education.urls", "education"), namespace="education")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

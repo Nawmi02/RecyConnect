@@ -8,10 +8,10 @@ User = get_user_model()
 
 # Where to send normal users after login
 ROLE_REDIRECTS = {
-    "household": "dash_household",
-    "buyer":     "dash_buyer",
-    "recycler":  "dash_recycler",   # Recycling Centre
-    "collector": "dash_collector",
+    "household": "user:dash_household",
+    "buyer":     "user:dash_buyer",
+    "recycler":  "user:dash_recycler",   # Recycling Centre
+    "collector": "user:dash_collector",
 }
 
 # Superuser/staff land here (AdminPanel app, namespaced)
@@ -166,7 +166,7 @@ def role_required(allowed_roles=()):
             if getattr(user, "role", None) in allowed_roles:
                 return view_func(request, *args, **kwargs)
             messages.error(request, "You are not authorized to view that page.")
-            return redirect("login")
+            return redirect("user:login")
         return _wrapped
     return decorator
 
@@ -174,7 +174,7 @@ def role_required(allowed_roles=()):
 # ---------------- Dashboards ----------------
 @role_required(("household",))
 def household_dashboard(request):
-    return render(request, "base.html", {"user": request.user})
+    return render(request, "Household/h_base.html", {"user": request.user})
 
 @role_required(("buyer",))
 def buyer_dashboard(request):
@@ -182,7 +182,7 @@ def buyer_dashboard(request):
 
 @role_required(("recycler",))
 def recycler_dashboard(request):
-    return render(request, "recycler.html", {"user": request.user})  # <-- fixed
+    return render(request, "recycler.html", {"user": request.user}) 
 
 @role_required(("collector",))
 def collector_dashboard(request):

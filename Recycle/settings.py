@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'Education',
     'Rewards',
     'Notifications',
+    'Household',
+    'Collector',
+    'Buyer',
 ]
 
 MIDDLEWARE = [
