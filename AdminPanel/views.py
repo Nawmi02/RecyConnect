@@ -1,4 +1,3 @@
-# AdminPanel/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
@@ -9,6 +8,9 @@ import secrets
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.apps import apps
+from Education.models import Learn, Tag
+
 
 from User.services import (
     send_account_approved_email,
@@ -126,8 +128,69 @@ def user_detail(request, pk: int):
 
 @guard
 def marketplace(request):  return render(request, "Admin/ad_marketplace.html")
+
+#Learn
 @guard
-def learn(request):        return render(request, "Admin/ad_learn.html")
+def learn(request):
+    for code, label in Tag.Choices.choices:
+        Tag.objects.get_or_create(name=code)
+
+    if request.method == "POST":
+        title       = (request.POST.get("title") or "").strip()
+        topic       = (request.POST.get("topic") or "").strip()
+        category    = request.POST.get("category") or ""
+        description = (request.POST.get("description") or "").strip()
+        read_time   = int(request.POST.get("read_time") or 0)
+
+        image      = request.FILES.get("image")
+        pdf_file   = request.FILES.get("pdf_file")
+        video_file = request.FILES.get("video_file")
+        quick_text = request.POST.get("quick_text") or ""
+
+        tag_codes = request.POST.getlist("tag_codes")  
+
+        if not topic:
+            messages.error(request, "Topic is required.")
+            return redirect("adminpanel:learn")
+
+        item = Learn(
+            title=title,
+            topic=topic,
+            category=category,
+            description=description,
+            read_time=read_time,
+            image=image,
+            pdf_file=pdf_file,
+            video_file=video_file,
+            quick_text=quick_text,
+        )
+
+        try:
+            with transaction.atomic():
+                item.full_clean()
+                item.save()
+                if tag_codes:
+                    tags = list(Tag.objects.filter(name__in=tag_codes))
+                    item.tags.set(tags)
+
+            messages.success(request, "Content added successfully.")
+        except ValidationError as e:
+            for field, errs in e.message_dict.items():
+                for msg in errs:
+                    messages.error(request, f"{field}: {msg}")
+        except Exception as e:
+            messages.error(request, f"Failed to add content: {e}")
+
+        return redirect("adminpanel:learn")
+
+    # GET
+    ctx = {
+        "learns": Learn.objects.all(),
+        "cat_choices": Learn.Category.choices,
+        "tag_opts": Tag.Choices.choices,
+    }
+    return render(request, "Admin/ad_learn.html", ctx)
+
 @guard
 def rewards(request):      return render(request, "Admin/ad_rewards.html")
 @guard

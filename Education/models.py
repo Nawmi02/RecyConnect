@@ -37,8 +37,8 @@ class Learn(models.Model):
         VIDEO      = "video",      "Video"
         QUICK_TEXT = "quick_text", "Quick Text"
 
-    title       = models.CharField(max_length=200)
-    topic       = models.CharField(max_length=120, help_text="main topic of content")
+    title       = models.CharField(max_length=200,null=True)
+    topic       = models.CharField(max_length=120, null=True )
     category    = models.CharField(max_length=20, choices=Category.choices)
     description = models.TextField()
     read_time   = models.PositiveIntegerField(help_text="Reading time in minutes")
