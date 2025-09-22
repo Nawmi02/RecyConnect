@@ -51,10 +51,26 @@ class User(AbstractBaseUser):
         ("buyer",     "Buyer"),
     ]
 
+    # --- product kind (for collector role) ---
+    class ProductKind(models.TextChoices):
+        PLASTIC = "plastic", "Plastic"
+        PAPER   = "paper",   "Paper"
+        GLASS   = "glass",   "Glass"
+        METAL   = "metal",   "Metal"
+        E_WASTE = "e_waste", "E-waste"
+
     # identity
     email = models.EmailField(unique=True, db_index=True)
     password = models.CharField(max_length=128)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+
+    # collector-specific choice (optional at registration)
+    collector_product = models.CharField(
+        max_length=12,
+        choices=ProductKind.choices,
+        blank=True,
+        help_text="Collector only: what type of material you collect.",
+    )
 
     # public profile
     name = models.CharField(max_length=100, blank=True)
@@ -140,10 +156,10 @@ class User(AbstractBaseUser):
         if errors:
             raise ValidationError(errors)
 
-    # approval gate 
+    # approval gate
     def approve(self, by_user):
         approve_errors = {}
-        # Now enforce required fields at approval time:
+        # Enforce required fields at approval time:
         if not self.profile_image:
             approve_errors["profile_image"] = "A profile picture is required before approval."
         if not (self.is_staff or self.is_superuser):
@@ -151,6 +167,8 @@ class User(AbstractBaseUser):
                 approve_errors["map_url"] = "A valid Google Maps URL is required before approval."
         if self.role in ("collector", "recycler") and not self.id_card_image:
             approve_errors["id_card_image"] = "An ID/visiting card image is required before approval."
+        if self.role == "collector" and not self.collector_product:
+            approve_errors["collector_product"] = "Select what material the Collector handles."
 
         if approve_errors:
             raise ValidationError(approve_errors)
