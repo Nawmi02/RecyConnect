@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="edu-awareness-container">
+    <h2>Education & Awareness</h2>
+    <p class="subtitle">
+        <span>🌱 Gain insights into waste management, sustainable practices, and protecting Earth</span>
+    </p>
+    <div class="edu-tabs">
+        <a href="?tab=guides" class="edu-tab-btn{% if active_tab == 'guides' %} active{% endif %}">
+            <img src="{% static 'icon/book.png' %}" style="width:22px;vertical-align:middle;margin-right:6px;" alt="Guidelines"/>
+            Guidelines & Articles
+        </a>
+        <a href="?tab=videos" class="edu-tab-btn{% if active_tab == 'videos' %} active{% endif %}">
+            <img src="{% static 'icon/video.png' %}" style="width:22px;vertical-align:middle;margin-right:6px;" alt="Video"/>
+            Video
+        </a>
+        <a href="?tab=tips" class="edu-tab-btn{% if active_tab == 'tips' %} active{% endif %}">
+            <img src="{% static 'icon/tips.png' %}" style="width:22px;vertical-align:middle;margin-right:6px;" alt="Tips"/>
+            Quick Tips
+        </a>
+    </div>
+
+    {% if active_tab == 'guides' and guides %}
+        <div class="guide-cards">
+            {% for guide in guides %}
+            <div class="guide-card">
+                <div class="guide-img">
+                    <img src="{{ guide.image.url }}" alt="{{ guide.title }}">
+                </div>
+                <div class="guide-content">
+                    <h3>{{ guide.title }}</h3>
+                    <div class="guide-meta">
+                        {% if guide.category %}
+                        <span>🌿 {{ guide.category }}</span>
+                        {% endif %}
+                        <span>🕒 {{ guide.reading_time }}</span>
+                        <span>📥 {{ guide.downloads }} downloads</span>
+                    </div>
+                    <p class="guide-description">{{ guide.description }}</p>
+                    <div class="guide-tags">
+                        {% for tag in guide.tag_list %}
+                        <span class="guide-tag">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="guide-actions">
+                        <a href="{% url 'read_guide' guide.id %}" class="read-btn"><img src="{% static 'icon/read.png' %}" style="width:20px;vertical-align:middle;margin-right:6px;">Read Guide</a>
+                        {% if guide.pdf_file %}
+                        <a href="{% url 'download_guide_pdf' guide.id %}" class="pdf-btn"><img src="{% static 'icon/download.png' %}" style="width:20px;vertical-align:middle;margin-right:6px;">Download PDF</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="load-more">
+            <button>Load More ⬇️</button>
+        </div>
+    {% elif active_tab == 'videos' and videos %}
+        <div class="video-list">
+            {% for video in videos %}
+                <div class="video-item">
+                    <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}">
+                    <h4>{{ video.title }}</h4>
+                    <p>{{ video.description }}</p>
+                    <a href="{{ video.video_url }}" class="video-link" target="_blank">Watch Video</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% elif active_tab == 'tips' and tips %}
+        <div class="tips-list">
+            {% for tip in tips %}
+                <div class="tip-item">
+                    <h4>{{ tip.title }}</h4>
+                    <p>{{ tip.tip }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No content available.</p>
+    {% endif %}
+</div>
+
+<footer class="footer-green">
+    <div class="footer-container">
+        <div class="footer-logo-social">
+            <div class="footer-logo">
+                <img src="{% static 'logo.png' %}" alt="RecyConnect Logo" style="height:38px;"> 
+                <h3>Your Smart Pathway to Eco-Friendly Living</h3>
+            </div>
+        </div>
+        <div class="footer-columns">
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#">Notification</a></li>
+                    <li><a href="#">Marketplace</a></li>
+                    <li><a href="#">Learn</a></li>
+                    <li><a href="#">Search</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contact Us</h4>
+                <ul>
+                    <li>Email: <a href="mailto:info_recyconnect@gmail.com">info_recyconnect@gmail.com</a></li>
+                    <li>Phone: +8801317247011</li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Social Media</h4>
+                <a href="#"><img src="{% static 'icon/facebook.png' %}" alt="Facebook" style="width:26px;margin-right:10px;"></a>
+                <a href="#"><img src="{% static 'icon/instagram.png' %}" alt="Instagram" style="width:26px;"></a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-copy">
+        © 2025 RecyConnect. All rights reserved.
+    </div>
+</footer>
+
+<style>
+/* Main container */
+.edu-awareness-container { max-width: 900px; margin:30px auto 0 auto; padding: 30px 10px; min-height:500px; }
+
+/* Tabs */
+.edu-tabs { display: flex; gap: 10px; margin-bottom: 20px; background: #eaf1f5; border-radius: 22px; padding: 10px 14px;}
+.edu-tab-btn { padding: 8px 22px; border-radius: 20px; background: none; color: #333; text-decoration: none; font-weight: 600; transition:.17s; border:none; }
+.edu-tab-btn.active { background: #fff; color: #16a34a; border: 2px solid #16a34a; box-shadow: 0 1px 3px #d1fae5; }
+
+/* Guide cards */
+.guide-cards { display: flex; flex-direction: column; gap: 22px; }
+.guide-card { display: flex; gap: 18px; background: #fff; border-radius: 18px; box-shadow: 0 2px 14px 0 #e7e7e7; padding: 18px; align-items: flex-start;}
+.guide-img img { width: 120px; height: 120px; object-fit: cover; border-radius: 13px; }
+.guide-content { flex: 1; }
+.guide-meta { display: flex; gap: 18px; font-size: 15px; margin-bottom: 4px; color: #444; align-items: center; }
+.guide-tags { margin: 8px 0; }
+.guide-tag { display: inline-block; background: #e4f7ea; color: #15803d; border-radius: 14px; padding: 3px 14px; font-size: 13px; margin-right: 6px; margin-bottom: 4px;}
+.guide-actions { margin-top: 10px; display: flex; gap: 16px; }
+.read-btn, .pdf-btn { padding: 9px 18px; border-radius: 10px; font-weight: 600; text-decoration: none; background: #22c55e; color: #fff; box-shadow: 0 2px 6px #a7f3d0; display:inline-block;}
+.pdf-btn { background: #22d3ee; }
+.read-btn img, .pdf-btn img { filter: brightness(0) invert(1); }
+.load-more { margin: 20px 0 0; text-align: center; }
+.load-more button { background: none; border: none; color: #4b5563; font-size: 16px; cursor: pointer; }
+
+/* Video, tips, etc. */
+.video-list, .tips-list { display: flex; flex-direction: column; gap: 16px; }
+.video-item, .tip-item { background: #fff; border-radius: 14px; box-shadow: 0 2px 8px 0 #dbeafe; padding: 13px;}
+.video-item img { width: 100%; border-radius: 10px; }
+.video-link { color: #2563eb; font-weight: bold; }
+
+/* Footer */
+.footer-green { background: #16a34a; color: #fff; padding: 40px 0 0 0; margin-top:38px;}
+.footer-container { max-width: 1200px; margin: auto; display: flex; flex-wrap:wrap; justify-content: space-between; align-items: flex-start; }
+.footer-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.footer-logo h3 { font-size: 1.18rem; font-weight: 600; margin: 0; }
+.footer-columns { display: flex; gap: 40px; flex:1; }
+.footer-col { min-width: 140px; }
+.footer-col h4 { font-size: 1.01rem; margin-bottom: 7px; }
+.footer-col ul { list-style: none; margin: 0; padding: 0;}
+.footer-col li { margin-bottom: 6px;}
+.footer-col a { color: #fff; text-decoration: none; }
+.footer-col a:hover { text-decoration: underline; }
+.footer-copy { border-top: 1px solid #a7f3d0; margin-top: 28px; padding: 9px 0 7px 0; text-align: center; font-size: 0.98rem; color:#e0ffe7;}
+@media (max-width: 900px) {
+    .edu-awareness-container { padding: 18px 3vw;}
+    .guide-card { flex-direction: column; align-items: stretch;}
+    .guide-img img { width: 100%; max-width: 220px; height: auto;}
+    .footer-container { flex-direction: column; align-items: flex-start; gap: 18px;}
+    .footer-columns { flex-direction: column; gap: 18px;}
+}
+</style>
+{% endblock %}
