@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto p-6">
+    <h1 class="text-2xl font-bold text-green-600 mb-6">Notifications</h1>
+
+    <div class="space-y-4">
+        {% for notification in notifications %}
+        <div class="flex items-center p-4 rounded-2xl shadow-md bg-white border border-gray-200">
+            <!-- Icon -->
+            <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full 
+                        {% if notification.type == 'success' %}
+                            bg-green-100 text-green-600
+                        {% elif notification.type == 'info' %}
+                            bg-blue-100 text-blue-600
+                        {% elif notification.type == 'reward' %}
+                            bg-yellow-100 text-yellow-600
+                        {% else %}
+                            bg-gray-100 text-gray-600
+                        {% endif %}
+                        ">
+                <i class="{{ notification.icon }} text-xl"></i>
+            </div>
+
+            <!-- Text -->
+            <div class="ml-4 flex-1">
+                <p class="text-gray-800 font-medium">{{ notification.message }}</p>
+                <span class="text-sm text-gray-500">{{ notification.time }}</span>
+            </div>
+
+            <!-- Delete button -->
+            <form method="post" action="{% url 'delete_notification' notification.id %}">
+                {% csrf_token %}
+                <button type="submit" class="ml-3 text-gray-400 hover:text-red-500">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </form>
+        </div>
+        {% empty %}
+        <p class="text-center text-gray-500">No notifications available.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
