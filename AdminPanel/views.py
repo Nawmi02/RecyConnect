@@ -111,8 +111,19 @@ def create_admin(request):
 
     return render(request, "Admin/create_admin.html")
 
+#Community
 @guard
-def community(request):    return render(request, "Admin/ad_community.html")
+def community(request):
+    
+    users = User.objects.filter(is_approved=True).order_by('-date_joined')
+    return render(request, "Admin/ad_community.html", {"users": users})
+@guard
+def user_detail(request, pk: int):
+   
+    user_obj = get_object_or_404(User, pk=pk)
+    return render(request, "Admin/ad_profile.html", {"u": user_obj})
+
+
 @guard
 def marketplace(request):  return render(request, "Admin/ad_marketplace.html")
 @guard

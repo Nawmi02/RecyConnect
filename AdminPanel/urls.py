@@ -12,6 +12,7 @@ urlpatterns = [
 
     path("create-admin/", views.create_admin, name="create_admin"),
     path("community/", views.community, name="community"),
+    path("users/<int:pk>/", views.user_detail, name="user_detail"),
     path("marketplace/", views.marketplace, name="marketplace"),
     path("learn/", views.learn, name="learn"),
     path("rewards/", views.rewards, name="rewards"),

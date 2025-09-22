@@ -1,0 +1,126 @@
+{% extends "Admin/admin_base.html" %}
+{% load static %}
+
+{% block title %}Community · RecyConnect{% endblock %}
+
+{% block content %}
+<style>
+  .cm-wrap{ min-height:60vh; padding:8px 6px 24px; }
+  .cm-head{
+    max-width:1200px; margin:0 auto 12px; padding:0 6px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .cm-title{ font-size:20px; font-weight:800; color:#065f46 }
+
+  .cm-grid{
+    max-width:1200px; margin:0 auto; padding:0 6px;
+    display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:16px;
+  }
+  @media (max-width:1100px){ .cm-grid{ grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width:820px){ .cm-grid{ grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width:540px){ .cm-grid{ grid-template-columns: 1fr; } }
+
+  .card{
+    background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+    box-shadow:0 8px 26px rgba(0,0,0,.06);
+    padding:16px 14px;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    transition: border-color .15s ease, box-shadow .2s ease, transform .12s ease;
+  }
+  /* hover: চিকন সবুজ shiny বর্ডার + subtle glow */
+  .card:hover{
+    border-color:#16a34a;
+    box-shadow:
+      0 8px 26px rgba(0,0,0,.06),
+      0 0 0 2px rgba(22,163,74,.45) inset,   /* thin inner ring */
+      0 0 14px rgba(22,163,74,.25);          /* outer glow */
+    transform: translateY(-2px);
+  }
+
+  /* avatar clash fix: আলাদা ক্লাস */
+  .cm-avatar{
+    width:92px; height:92px; border-radius:50%; object-fit:cover;
+    border:3px solid #e5e7eb; margin-top:4px;
+  }
+
+  .name{ margin-top:10px; font-size:18px; font-weight:800; color:#111827 }
+  .email{ margin-top:2px; font-size:14px; color:#374151; font-weight:600; word-break:break-all; }
+
+  .meta{
+    width:100%; margin-top:12px; padding-top:10px;
+    border-top:1px dashed #e5e7eb; text-align:left;
+  }
+  .row{ display:flex; align-items:center; gap:8px; margin:6px 0; }
+  .label{ width:70px; font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.35px }
+  .value{ font-size:14px; color:#111827; font-weight:600 }
+  .muted{ color:#9ca3af }
+
+  .role-pill{
+    display:inline-flex; align-items:center; gap:6px; padding:4px 10px;
+    border-radius:999px; font-size:12px; font-weight:700;
+  }
+  .role-admin{ background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe }
+  .role-household{ background:#d1fae5; color:#065f46; border:1px solid #bbf7d0 }
+  .role-collector{ background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe }
+  .role-recycler{ background:#ffedd5; color:#7c2d12; border:1px solid #fed7aa }
+  .role-buyer{ background:#dcfce7; color:#065f46; border:1px solid #bbf7d0 }
+
+  .btn{
+    margin-top:12px;
+    display:inline-flex; align-items:center; justify-content:center;
+    background:#16a34a; color:#fff; text-decoration:none; border:none; cursor:pointer;
+    padding:10px 14px; border-radius:999px; font-weight:700;
+  }
+  .btn:hover{ filter:brightness(.95) }
+</style>
+
+<div class="cm-wrap">
+  <div class="cm-head">
+    <div class="cm-title">Community Members</div>
+    <div style="font-size:13px;color:#6b7280;">Approved: {{ users|length }}</div>
+  </div>
+
+  <div class="cm-grid">
+    {% for u in users %}
+      <div class="card">
+        {% if u.profile_image %}
+          <img class="cm-avatar" src="{{ u.profile_image.url }}" alt="{{ u.email }}">
+        {% else %}
+          <img class="cm-avatar" src="{% static 'icons/avatar-placeholder.png' %}" alt="avatar">
+        {% endif %}
+
+        <div class="name">{{ u.name|default:"Unnamed User" }}</div>
+        <div class="email">{{ u.email }}</div>
+
+        <div class="meta">
+          <div class="row">
+            <div class="label">Role</div>
+            <div class="value">
+              {% if u.is_staff or u.is_superuser %}
+                <span class="role-pill role-admin">Admin</span>
+              {% else %}
+                {% with r=u.role %}
+                  <span class="role-pill role-{{ r }}">{{ u.get_role_display }}</span>
+                {% endwith %}
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="label">Phone</div>
+            <div class="value">
+              {% if u.phone %}{{ u.phone }}{% else %}<span class="muted">Not set</span>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <a class="btn" href="{% url 'adminpanel:user_detail' u.pk %}">View details</a>
+      </div>
+    {% empty %}
+      <div class="card" style="grid-column:1/-1">
+        <div class="name" style="font-size:16px;">No approved users found.</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
