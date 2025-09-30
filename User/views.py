@@ -10,7 +10,7 @@ User = get_user_model()
 ROLE_REDIRECTS = {
     "household": "user:dash_household",
     "buyer":     "user:dash_buyer",
-    "recycler":  "user:dash_recycler",   # Recycling Centre
+    "recycler":  "user:dash_recycler",   
     "collector": "user:dash_collector",
 }
 
@@ -178,12 +178,12 @@ def household_dashboard(request):
 
 @role_required(("buyer",))
 def buyer_dashboard(request):
-    return render(request, "buyer.html", {"user": request.user})
+    return render(request, "Buyer/b_base.html", {"user": request.user})
 
 @role_required(("recycler",))
 def recycler_dashboard(request):
-    return render(request, "recycler.html", {"user": request.user}) 
+    return render(request, "Buyer/b_base.html", {"user": request.user}) 
 
 @role_required(("collector",))
 def collector_dashboard(request):
-    return render(request, "collector.html", {"user": request.user})
+    return render(request, "Collector/c_base.html", {"user": request.user})

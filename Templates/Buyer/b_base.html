@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{% block title %}RecyConnect Household{% endblock %}</title>
+  <title>{% block title %}RecyConnect Buyer{% endblock %}</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -142,28 +142,28 @@
 
       <!-- Center: Menu (icon over label) -->
       <div class="menu">
-        <a href="{% url 'household:dashboard' %}">
+        <a href="{% url 'buyer:dashboard' %}">
           <img src="{% static 'home.png' %}" alt="Home">
           <span>Dashboard</span>
         </a>
-        <a href="{% url 'household:community' %}">
+        <a href="{% url 'buyer:community' %}">
           <img src="{% static 'community.png' %}" alt="Community">
           <span>Community</span>
         </a>
-        <a href="{% url 'household:marketplace' %}">
+        <a href="{% url 'buyer:marketplace' %}">
           <img src="{% static 'cart.png' %}" alt="Marketplace">
           <span>Marketplace</span>
         </a>
-        <a href="{% url 'education:education_awareness_h' %}?tab=guides">
+        <a href="{% url 'buyer:education_awareness_b' %}?tab=guides">
 
           <img src="{% static 'learn.png' %}" alt="Learn">
           <span>Learn</span>
         </a>
-        <a href="{% url 'household:rewards' %}">
+        <a href="{% url 'buyer:rewards' %}">
           <img src="{% static 'trophy.png' %}" alt="Rewards">
           <span>Rewards</span>
         </a>
-        <a href="{% url 'household:notifications' %}">
+        <a href="{% url 'buyer:notifications' %}">
           <img src="{% static 'bell.png' %}" alt="Notifications">
           <span>Notifications</span>
         </a>
@@ -181,13 +181,13 @@
 
         <!-- Dropdown -->
         <div class="dropdown" id="profileDropdown">
-          <a href="{% url 'household:profile' %}">
+          <a href="{% url 'buyer:profile' %}">
             <img src="{% static 'user.png' %}" alt="" width="18" height="18"> My Profile
           </a>
-          <a href="{% url 'household:settings' %}">
+          <a href="{% url 'buyer:settings' %}">
             <img src="{% static 'settings.png' %}" alt="" width="18" height="18"> Settings
           </a>
-          <a href="{% url 'household:history' %}">
+          <a href="{% url 'buyer:history' %}">
             <img src="{% static 'history.png' %}" alt="" width="18" height="18"> History
           </a>
           <div class="sep"></div>

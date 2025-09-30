@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import FileResponse, Http404
@@ -21,9 +19,11 @@ def _get_int(value, default=1, min_value=None, max_value=None):
         v = max_value
     return v
 
+from django.db.models import Q
+from django.core.paginator import Paginator, EmptyPage
+from django.shortcuts import render
 
-def education_awareness(request):
-    
+def _education_awareness_common(request, template_name):
     tab = (request.GET.get("tab") or "guides").strip().lower()
     tag_code = request.GET.get("tag")
     q = (request.GET.get("q") or "").strip()
@@ -36,14 +36,18 @@ def education_awareness(request):
         qs = Learn.objects.filter(category__in=[Learn.Category.GUIDELINE, Learn.Category.ARTICLE])
 
     if tag_code:
-        qs = qs.filter(tags__name=tag_code)
+        qs = qs.filter(
+            Q(tags__name__iexact=tag_code) |
+            Q(tags__code__iexact=tag_code) |
+            Q(tags__slug__iexact=tag_code)
+        )
 
     if q:
         qs = qs.filter(
-            Q(title__icontains=q)
-            | Q(topic__icontains=q)
-            | Q(description__icontains=q)
-            | Q(quick_text__icontains=q)
+            Q(title__icontains=q) |
+            Q(topic__icontains=q) |
+            Q(description__icontains=q) |
+            Q(quick_text__icontains=q)
         )
 
     qs = qs.prefetch_related("tags").order_by("-created_at")
@@ -64,7 +68,18 @@ def education_awareness(request):
         "selected_tag": tag_code,
         "query": q,
     }
-    return render(request, "learn.html", context)
+    return render(request, template_name, context)
+
+def education_awareness_h(request):
+    return _education_awareness_common(request, "Household/h_learn.html")
+
+def education_awareness_c(request):
+    return _education_awareness_common(request, "Collector/c_learn.html")
+
+def education_awareness_b(request):
+    return _education_awareness_common(request, "Buyer/b_learn.html")
+
+
 
 
 # ---------- Guides/Articles ----------
@@ -115,4 +130,3 @@ def download_video(request, pk):
     resp = FileResponse(video.video_file.open("rb"), content_type=ctype or "application/octet-stream")
     resp["Content-Disposition"] = f'attachment; filename="{smart_str(filename)}"'
     return resp
->>>>>>> 2cf989ab239de9697124b37f9b8e09007d053f63

@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-app_name = "household"
+app_name = "collector"
 
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),            
@@ -14,7 +14,7 @@ urlpatterns = [
     path("settings/", views.settings, name="settings"),
     path("history/", views.history, name="history"),
     
-    path("education/", views.education_awareness_h, name="education_awareness_h"),
+    path("education/", views.education_awareness_c, name="education_awareness_c"),
     path("education/<int:pk>/pdf/view/", views.view_guide_pdf, name="view_guide_pdf"),
     path("education/<int:pk>/pdf/download/", views.download_guide_pdf, name="download_guide_pdf"),
     path("education/<int:pk>/video/view/", views.view_video, name="view_video"),

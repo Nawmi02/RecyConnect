@@ -1,0 +1,790 @@
+{% extends 'Buyer/b_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="edu-awareness-container">
+    <div class="page-header">
+        <h1 class="page-title">Education & Awareness</h1>
+        <p class="page-subtitle">
+            Gain insights into waste management, sustainable practices, and protecting our environment
+        </p>
+    </div>
+
+    {# Filter bar #}
+    <div class="filter-section">
+        <form method="get" class="filter-form">
+            <input type="hidden" name="tab" value="{{ active_tab }}">
+            <div class="search-input-container">
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <input type="text" name="q" placeholder="Search title, topic, or description..."
+                       value="{{ query }}" class="search-input">
+            </div>
+            <select name="tag" class="tag-select">
+                <option value="">All categories</option>
+                {% for value,label in tag_choices %}
+                    <option value="{{ value }}" {% if selected_tag == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="filter-btn">Apply Filters</button>
+            {% if query or selected_tag %}
+                <a href="{% url 'buyer:education_awareness_b' %}?tab={{ active_tab }}" class="reset-btn">Reset</a>
+            {% endif %}
+        </form>
+    </div>
+
+    {# Tabs #}
+    <div class="content-tabs">
+        <a href="{% url 'buyer:education_awareness_b' %}?tab=guides{% if query %}&q={{ query|urlencode }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}"
+           class="content-tab {% if active_tab == 'guides' %} active{% endif %}">
+            <div class="tab-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 14L12 18M12 14C10.8954 14 10 13.1046 10 12C10 10.8954 10.8954 10 12 10M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10M12 10V6M9 3H15M7 21H17C18.1046 21 19 20.1046 19 19V5C19 3.89543 18.1046 3 17 3H7C5.89543 3 5 3.89543 5 5V19C5 20.1046 5.89543 21 7 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span>Guidelines & Articles</span>
+        </a>
+        <a href="{% url 'buyer:education_awareness_b' %}?tab=videos{% if query %}&q={{ query|urlencode }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}"
+           class="content-tab {% if active_tab == 'videos' %} active{% endif %}">
+            <div class="tab-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14.75 12L9.75 9.75V14.25L14.75 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span>Video Content</span>
+        </a>
+        <a href="{% url 'buyer:education_awareness_b' %}?tab=tips{% if query %}&q={{ query|urlencode }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}"
+           class="content-tab {% if active_tab == 'tips' %} active{% endif %}">
+            <div class="tab-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span>Quick Tips</span>
+        </a>
+    </div>
+
+    {# Content sections #}
+    <div class="content-section">
+        {# -------- Guides + Articles -------- #}
+        {% if active_tab == 'guides' %}
+            <div class="guide-cards">
+                {% for guide in items %}
+                <div class="guide-card">
+                    <div class="guide-image">
+                        {% if guide.image %}
+                            <img src="{{ guide.image.url }}" alt="{{ guide.title }}">
+                        {% else %}
+                            <div class="image-placeholder">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="guide-content">
+                        <h3 class="guide-title">{{ guide.title }}</h3>
+                        <div class="guide-meta">
+                            <span class="meta-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                {{ guide.get_category_display }}
+                            </span>
+                            <span class="meta-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                {{ guide.read_time }} min read
+                            </span>
+                            <span class="meta-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 15V3M12 15L8 11M12 15L16 11M2 17L2 21C2 21.5523 2.44772 22 3 22H21C21.5523 22 22 21.5523 22 21V17" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                {{ guide.downloads }}
+                            </span>
+                        </div>
+                        <p class="guide-description">{{ guide.description }}</p>
+
+                        {% if guide.tags.all %}
+                        <div class="guide-tags">
+                            {% for tag in guide.tags.all %}
+                                <span class="guide-tag">{{ tag.get_name_display }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="guide-actions">
+                            {% if guide.pdf_file %}
+                                <a href="{% url 'buyer:view_guide_pdf' guide.id %}" class="action-btn primary-btn" target="_blank" rel="noopener">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 14L12 18M12 14C10.8954 14 10 13.1046 10 12C10 10.8954 10.8954 10 12 10M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10M12 10V6M9 3H15M7 21H17C18.1046 21 19 20.1046 19 19V5C19 3.89543 18.1046 3 17 3H7C5.89543 3 5 3.89543 5 5V19C5 20.1046 5.89543 21 7 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Read Guide
+                                </a>
+                                <a href="{% url 'buyer:download_guide_pdf' guide.id %}" class="action-btn secondary-btn">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 15V3M12 15L8 11M12 15L16 11M2 17L2 21C2 21.5523 2.44772 22 3 22H21C21.5523 22 22 21.5523 22 21V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Download PDF
+                                </a>
+                            {% else %}
+                                <span class="no-file">No PDF attached</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 14L12 18M12 14C10.8954 14 10 13.1046 10 12C10 10.8954 10.8954 10 12 10M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10M12 10V6M9 3H15M7 21H17C18.1046 21 19 20.1046 19 19V5C19 3.89543 18.1046 3 17 3H7C5.89543 3 5 3.89543 5 5V19C5 20.1046 5.89543 21 7 21Z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <h3>No guides available</h3>
+                        <p>Try adjusting your search or filter to find what you're looking for.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+        {# -------- Videos -------- #}
+        {% elif active_tab == 'videos' %}
+            <div class="video-grid">
+                {% for video in items %}
+                    <div class="video-card">
+                        <div class="video-thumbnail">
+                            {% if video.image %}
+                                <img src="{{ video.image.url }}" alt="{{ video.title }}">
+                            {% else %}
+                                <div class="thumbnail-placeholder">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M14.75 12L9.75 9.75V14.25L14.75 12Z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                            <div class="play-overlay">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 5V19L19 12L8 5Z" fill="white"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="video-content">
+                            <h4 class="video-title">{{ video.title }}</h4>
+                            <p class="video-description">{{ video.description }}</p>
+
+                            {% if video.video_file %}
+                                <div class="video-actions">
+                                    <a href="{% url 'buyer:view_video' video.id %}" class="action-btn primary-btn" target="_blank" rel="noopener">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M14.75 12L9.75 9.75V14.25L14.75 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        Watch Video
+                                    </a>
+                                    <a href="{% url 'buyer:download_video' video.id %}" class="action-btn secondary-btn">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 15V3M12 15L8 11M12 15L16 11M2 17L2 21C2 21.5523 2.44772 22 3 22H21C21.5523 22 22 21.5523 22 21V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        Download
+                                    </a>
+                                </div>
+                            {% else %}
+                                <span class="no-file">No video file</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14.75 12L9.75 9.75V14.25L14.75 12Z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <h3>No videos available</h3>
+                        <p>Try adjusting your search or filter to find what you're looking for.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+      {# -------- Quick Tips -------- #}
+{% elif active_tab == 'tips' %}
+    <div class="tips-grid">
+        {% for tip in items %}
+            <div class="tip-card">
+                <div class="tip-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="tip-content">
+                    <h4 class="tip-title">{{ tip.title }}</h4>
+                    <div class="tip-text" style="white-space: pre-line; color: #475569; line-height: 1.6;">
+                        {{ tip.quick_text }}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h3>No tips available</h3>
+                <p>Try adjusting your search or filter to find what you're looking for.</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+    {# Pagination #}
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="{% url 'buyer:education_awareness_c' %}?tab={{ active_tab }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}&page={{ page_obj.previous_page_number }}" class="pagination-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Previous
+            </a>
+        {% endif %}
+        <span class="pagination-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="{% url 'buyer:education_awareness_b' %}?tab={{ active_tab }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}&page={{ page_obj.next_page_number }}" class="pagination-btn">
+                Next
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* Main container */
+.edu-awareness-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    min-height: 500px;
+}
+
+/* Page header */
+.page-header {
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.page-subtitle {
+    font-size: 1.125rem;
+    color: #64748b;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Filter section */
+.filter-section {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+}
+
+.filter-form {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.search-input-container {
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 12px 10px 38px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.tag-select {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    min-width: 180px;
+    background-color: white;
+    transition: all 0.2s;
+}
+
+.tag-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.filter-btn:hover {
+    background: #2563eb;
+}
+
+.reset-btn {
+    padding: 10px 16px;
+    color: #64748b;
+    text-decoration: none;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.reset-btn:hover {
+    background: #f8fafc;
+    color: #475569;
+}
+
+/* Content tabs */
+.content-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 8px;
+}
+
+.content-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: none;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    flex: 1;
+    justify-content: center;
+}
+
+.content-tab:hover {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.content-tab.active {
+    background: white;
+    color: #3b82f6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-icon {
+    display: flex;
+    align-items: center;
+}
+
+/* Content section */
+.content-section {
+    margin-bottom: 40px;
+}
+
+/* Guide cards */
+.guide-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.guide-card {
+    display: flex;
+    gap: 24px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.guide-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.guide-image {
+    flex-shrink: 0;
+}
+
+.guide-image img {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.image-placeholder {
+    width: 160px;
+    height: 160px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.guide-content {
+    flex: 1;
+}
+
+.guide-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 12px;
+}
+
+.guide-meta {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+.guide-description {
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.guide-tags {
+    margin-bottom: 16px;
+}
+
+.guide-tag {
+    display: inline-block;
+    background: #dbeafe;
+    color: #1e40af;
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.guide-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.primary-btn {
+    background: #3b82f6;
+    color: white;
+}
+
+.primary-btn:hover {
+    background: #2563eb;
+}
+
+.secondary-btn {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.secondary-btn:hover {
+    background: #e2e8f0;
+}
+
+.no-file {
+    color: #94a3b8;
+    font-size: 0.875rem;
+}
+
+/* Video grid */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.video-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.video-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.video-thumbnail {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+}
+
+.video-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.thumbnail-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.video-card:hover .play-overlay {
+    opacity: 1;
+}
+
+.video-content {
+    padding: 20px;
+}
+
+.video-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.video-description {
+    color: #64748b;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.video-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* Tips grid */
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.tip-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    display: flex;
+    gap: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tip-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tip-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: #d1fae5;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tip-content {
+    flex: 1;
+}
+
+.tip-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.tip-text {
+    color: #475569;
+    line-height: 1.6;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748b;
+}
+
+.empty-state h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 16px 0 8px;
+    color: #475569;
+}
+
+.empty-state p {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 40px;
+}
+
+.pagination-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    color: #475569;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.pagination-btn:hover {
+    background: #f8fafc;
+    border-color: #9ca3af;
+}
+
+.pagination-info {
+    color: #64748b;
+    font-size: 0.875rem;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .edu-awareness-container {
+        padding: 20px 16px;
+    }
+    
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-input-container {
+        min-width: auto;
+    }
+    
+    .content-tabs {
+        flex-direction: column;
+    }
+    
+    .guide-card {
+        flex-direction: column;
+    }
+    
+    .guide-image img {
+        width: 100%;
+        max-width: 100%;
+        height: 200px;
+    }
+    
+    .image-placeholder {
+        width: 100%;
+        height: 200px;
+    }
+    
+    .video-grid, .tips-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .guide-actions, .video-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .pagination {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+</style>
+{% endblock %}
