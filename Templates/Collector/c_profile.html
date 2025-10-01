@@ -37,7 +37,6 @@
       <!-- Product Type -->
       <div class="cp-product-section">
         <div class="cp-product-badge">
-          <img src="{% static 'icons/package.png' %}" alt="Product" class="cp-product-icon">
           <span class="cp-product-label">Product Type:</span>
           <span class="cp-product-value">{{ request.user.get_collector_product_display|default:"Not specified" }}</span>
         </div>

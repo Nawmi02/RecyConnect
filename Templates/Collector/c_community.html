@@ -1,0 +1,444 @@
+{% extends 'Collector/c_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="cc-container">
+  <div class="cc-header">
+    <h1 class="cc-title">Community Members</h1>
+    <p class="cc-subtitle">Connect with households, buyers, and other collectors in your area</p>
+  </div>
+
+  <div class="cc-filters">
+    <div class="cc-filter-group">
+      <label class="cc-filter-label">Filter by Role:</label>
+      <select class="cc-filter-select" id="roleFilter">
+        <option value="all">All Roles</option>
+        <option value="household">Household</option>
+        <option value="buyer">Buyer</option>
+        <option value="collector">Collector</option>
+        <option value="recycler">Recycling Centre</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="cc-grid" id="communityGrid">
+    {% for user in users %}
+      <div class="cc-card" data-role="{{ user.role }}">
+        <div class="cc-card-header">
+          <div class="cc-avatar">
+            {% if user.profile_image %}
+              <img src="{{ user.profile_image.url }}" alt="{{ user.name }}" class="cc-avatar-img">
+            {% else %}
+              <div class="cc-avatar-placeholder">
+                <img src="{% static 'icons/avatar-placeholder.png' %}" alt="Avatar">
+              </div>
+            {% endif %}
+          </div>
+          <h3 class="cc-user-name">{{ user.name|default:"Unnamed User" }}</h3>
+          <p class="cc-user-email">{{ user.email }}</p>
+          <div class="cc-role-badge cc-role-{{ user.role }}">
+            {{ user.get_role_display }}
+          </div>
+        </div>
+
+        <div class="cc-card-body">
+          <!-- Phone Number for All Users -->
+          <div class="cc-user-info">
+            <div class="cc-info-item">
+              <img src="{% static 'phone.png' %}" alt="Phone" class="cc-info-icon">
+              <span>{{ user.phone|default:"Not provided" }}</span>
+            </div>
+            {% if user.address %}
+            <div class="cc-info-item">
+              <img src="{% static 'address.png' %}" alt="Address" class="cc-info-icon">
+              <span>{{ user.address|truncatewords:5 }}</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Collector Specific Info -->
+          {% if user.role == 'collector' %}
+            <div class="cc-collector-info">
+              {% if user.collector_product %}
+                <div class="cc-product-badge">
+                  <img src="{% static 'icons/package.png' %}" alt="Product" class="cc-product-icon">
+                  <span>{{ user.get_collector_product_display }}</span>
+                </div>
+              {% endif %}
+            </div>
+            
+            <!-- Rating Display for Collectors -->
+            <div class="cc-collector-rating">
+              <div class="cc-rating-display">
+                <div class="cc-stars" style="--rating: {{ user.average_rating|default:0 }};">
+                  <div class="cc-stars-filled"></div>
+                </div>
+                <span class="cc-rating-text">
+                  {{ user.average_rating|default:0|floatformat:1 }} ({{ user.ratings_count|default:0 }} ratings)
+                </span>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Social Links for All Users -->
+          <div class="cc-social-links">
+            {% if user.map_url %}
+              <a href="{{ user.map_url }}" target="_blank" class="cc-social-link" title="Map Location">
+                <img src="{% static 'map.png' %}" alt="Map">
+              </a>
+            {% endif %}
+            {% if user.facebook %}
+              <a href="{{ user.facebook }}" target="_blank" class="cc-social-link" title="Facebook">
+                <img src="{% static 'fb.png' %}" alt="Facebook">
+              </a>
+            {% endif %}
+            {% if user.instagram %}
+              <a href="{{ user.instagram }}" target="_blank" class="cc-social-link" title="Instagram">
+                <img src="{% static 'insta.jpeg' %}" alt="Instagram">
+              </a>
+            {% endif %}
+            {% if user.twitter %}
+              <a href="{{ user.twitter }}" target="_blank" class="cc-social-link" title="Twitter">
+                <img src="{% static 'X ic.jpg' %}" alt="Twitter">
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="cc-empty">
+        <h3>No Community Members Found</h3>
+        <p>There are no other users in the community yet.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+/* ===== Base Styles ===== */
+.cc-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.cc-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.cc-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #f59e0b; /* Collector amber color */
+  margin: 0 0 8px 0;
+}
+
+.cc-subtitle {
+  color: #6b7280;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* ===== Filters ===== */
+.cc-filters {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.cc-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cc-filter-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.cc-filter-select {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.95rem;
+}
+
+/* ===== Grid ===== */
+.cc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* ===== Cards ===== */
+.cc-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.cc-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.cc-card-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.cc-avatar {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+}
+
+.cc-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #f59e0b; /* Collector amber color */
+}
+
+.cc-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #f59e0b; /* Collector amber color */
+}
+
+.cc-avatar-placeholder img {
+  width: 32px;
+  height: 32px;
+  opacity: 0.5;
+}
+
+.cc-user-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.cc-user-email {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0 0 12px 0;
+}
+
+.cc-role-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.cc-role-household {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.cc-role-buyer {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.cc-role-collector {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.cc-role-recycler {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+/* ===== Card Body ===== */
+.cc-card-body {
+  margin-bottom: 0;
+}
+
+/* User Info - For All Users */
+.cc-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cc-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.cc-info-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* Collector Info */
+.cc-collector-info {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.cc-product-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.cc-product-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* Collector Rating Display */
+.cc-collector-rating {
+  text-align: center;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cc-rating-display {
+  margin-bottom: 0;
+}
+
+.cc-stars {
+  position: relative;
+  display: inline-block;
+  font-size: 20px;
+  color: #e5e7eb;
+  margin-bottom: 8px;
+}
+
+.cc-stars-filled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #f59e0b;
+  overflow: hidden;
+  width: calc(var(--rating) * 20%);
+}
+
+.cc-stars::before {
+  content: "★★★★★";
+}
+
+.cc-stars-filled::before {
+  content: "★★★★★";
+}
+
+.cc-rating-text {
+  display: block;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* Social Links for All Users */
+.cc-social-links {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 16px;
+}
+
+.cc-social-link {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.cc-social-link:hover {
+  background: #f59e0b; /* Collector amber color */
+  transform: translateY(-2px);
+}
+
+.cc-social-link img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+/* ===== Empty State ===== */
+.cc-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.cc-empty h3 {
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.cc-empty p {
+  color: #6b7280;
+  margin: 0;
+}
+</style>
+
+<script>
+// Filter functionality
+document.getElementById('roleFilter').addEventListener('change', function() {
+  const selectedRole = this.value;
+  const cards = document.querySelectorAll('.cc-card');
+  
+  cards.forEach(card => {
+    if (selectedRole === 'all' || card.dataset.role === selectedRole) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+});
+
+// CSRF token helper function
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
+{% endblock %}

@@ -1,9 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.contrib.auth import update_session_auth_hash
-from User.models import User  
+from django.contrib.auth import update_session_auth_hash 
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.db import models
+import json
+from User.models import User, CollectorRating
 
 from Education.views import (
     education_awareness_c,
@@ -17,9 +22,35 @@ from Education.views import (
 def dashboard(request):
     return render(request, "Collector/c_dash.html")
 
+#Community
 @login_required(login_url="user:login")
 def community(request):
-    return render(request, "Collector/c_community.html")
+    """
+    Community view for Collector - shows all users except admin and current user
+    """
+    # Get all users except admin and current user
+    users = User.objects.exclude(
+        role='admin'
+    ).exclude(
+        id=request.user.id
+    ).select_related()
+    
+    # Add average rating and ratings count to collector users
+    for user in users:
+        if user.role == 'collector':
+            # Calculate average rating and count
+            ratings = CollectorRating.objects.filter(collector=user)
+            if ratings.exists():
+                user.average_rating = ratings.aggregate(avg=models.Avg('stars'))['avg']
+                user.ratings_count = ratings.count()
+            else:
+                user.average_rating = 0.0
+                user.ratings_count = 0
+    
+    context = {
+        'users': users
+    }
+    return render(request, "Collector/c_community.html", context)
 
 @login_required(login_url="user:login")
 def marketplace(request):
@@ -84,7 +115,7 @@ def settings(request):
             else:
                 user.set_password(new)
                 user.save()
-                update_session_auth_hash(request, user)  # keep logged in
+                update_session_auth_hash(request, user)  
                 messages.success(request, "Password updated successfully.")
                 return redirect("collector:settings")
 
@@ -92,7 +123,7 @@ def settings(request):
             messages.error(request, "Unknown form submission.")
 
     context = {
-        "product_choices": User.ProductKind.choices,  # for dropdown
+        "product_choices": User.ProductKind.choices, 
     }
     return render(request, "Collector/c_settings.html", context)
 

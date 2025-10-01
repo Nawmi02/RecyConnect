@@ -1,0 +1,668 @@
+{% extends 'Buyer/b_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="hc-container">
+  <div class="hc-header">
+    <h1 class="hc-title">Community Members</h1>
+    <p class="hc-subtitle">Connect with households, buyers, and collectors in your area</p>
+  </div>
+
+  <div class="hc-filters">
+    <div class="hc-filter-group">
+      <label class="hc-filter-label">Filter by Role:</label>
+      <select class="hc-filter-select" id="roleFilter">
+        <option value="all">All Roles</option>
+        <option value="household">Household</option>
+        <option value="buyer">Buyer</option>
+        <option value="collector">Collector</option>
+        <option value="recycler">Recycling Centre</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="hc-grid" id="communityGrid">
+    {% for user in users %}
+      <div class="hc-card" data-role="{{ user.role }}">
+        <div class="hc-card-header">
+          <div class="hc-avatar">
+            {% if user.profile_image %}
+              <img src="{{ user.profile_image.url }}" alt="{{ user.name }}" class="hc-avatar-img">
+            {% else %}
+              <div class="hc-avatar-placeholder">
+                <img src="{% static 'icons/avatar-placeholder.png' %}" alt="Avatar">
+              </div>
+            {% endif %}
+          </div>
+          <h3 class="hc-user-name">{{ user.name|default:"Unnamed User" }}</h3>
+          <p class="hc-user-email">{{ user.email }}</p>
+          <div class="hc-role-badge hc-role-{{ user.role }}">
+            {{ user.get_role_display }}
+          </div>
+        </div>
+
+        <div class="hc-card-body">
+          <!-- Phone Number for All Users -->
+          <div class="hc-user-info">
+            <div class="hc-info-item">
+              <img src="{% static 'phone.png' %}" alt="Phone" class="hc-info-icon">
+              <span>{{ user.phone|default:"Not provided" }}</span>
+            </div>
+            {% if user.address %}
+            <div class="hc-info-item">
+              <img src="{% static 'address.png' %}" alt="Address" class="hc-info-icon">
+              <span>{{ user.address|truncatewords:5 }}</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Collector Specific Info -->
+          {% if user.role == 'collector' %}
+            <div class="hc-collector-info">
+              {% if user.collector_product %}
+                <div class="hc-product-badge">
+                  <img src="{% static 'icons/package.png' %}" alt="Product" class="hc-product-icon">
+                  <span>{{ user.get_collector_product_display }}</span>
+                </div>
+              {% endif %}
+            </div>
+            
+            <div class="hc-collector-rating">
+              <div class="hc-rating-display">
+                <div class="hc-stars" style="--rating: {{ user.average_rating|default:0 }};">
+                  <div class="hc-stars-filled"></div>
+                </div>
+                <span class="hc-rating-text">
+                  {{ user.average_rating|default:0|floatformat:1 }} ({{ user.ratings_count|default:0 }} ratings)
+                </span>
+              </div>
+              
+              <div class="hc-rate-section">
+                <p class="hc-rate-label">Rate this collector:</p>
+                <div class="hc-rating-stars" data-user-id="{{ user.id }}">
+                  {% for i in "12345" %}
+                    <span class="hc-rate-star" data-rating="{{ i }}">★</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Social Links for All Users -->
+          <div class="hc-social-links">
+            {% if user.map_url %}
+              <a href="{{ user.map_url }}" target="_blank" class="hc-social-link" title="Map Location">
+                <img src="{% static 'map.png' %}" alt="Map">
+              </a>
+            {% endif %}
+            {% if user.facebook %}
+              <a href="{{ user.facebook }}" target="_blank" class="hc-social-link" title="Facebook">
+                <img src="{% static 'fb.png' %}" alt="Facebook">
+              </a>
+            {% endif %}
+            {% if user.instagram %}
+              <a href="{{ user.instagram }}" target="_blank" class="hc-social-link" title="Instagram">
+                <img src="{% static 'insta.jpeg' %}" alt="Instagram">
+              </a>
+            {% endif %}
+            {% if user.twitter %}
+              <a href="{{ user.twitter }}" target="_blank" class="hc-social-link" title="Twitter">
+                <img src="{% static 'X ic.jpg' %}" alt="Twitter">
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="hc-empty">
+        <h3>No Community Members Found</h3>
+        <p>There are no other users in the community yet.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Rating Success Modal -->
+<div class="hc-modal" id="ratingModal">
+  <div class="hc-modal-content">
+    <div class="hc-modal-header">
+      <h3>Rating Submitted</h3>
+      <button class="hc-modal-close">&times;</button>
+    </div>
+    <div class="hc-modal-body">
+      <p id="ratingMessage">Thank you for rating this collector!</p>
+    </div>
+    <div class="hc-modal-footer">
+      <button class="hc-modal-btn hc-modal-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== Base Styles ===== */
+.hc-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.hc-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.hc-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #059669;
+  margin: 0 0 8px 0;
+}
+
+.hc-subtitle {
+  color: #6b7280;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* ===== Filters ===== */
+.hc-filters {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.hc-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hc-filter-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.hc-filter-select {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.95rem;
+}
+
+/* ===== Grid ===== */
+.hc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* ===== Cards ===== */
+.hc-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.hc-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.hc-card-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.hc-avatar {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+}
+
+.hc-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #10b981;
+}
+
+.hc-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #10b981;
+}
+
+.hc-avatar-placeholder img {
+  width: 32px;
+  height: 32px;
+  opacity: 0.5;
+}
+
+.hc-user-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.hc-user-email {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0 0 12px 0;
+}
+
+.hc-role-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.hc-role-household {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.hc-role-buyer {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.hc-role-collector {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.hc-role-recycler {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+/* ===== Card Body ===== */
+.hc-card-body {
+  margin-bottom: 0;
+}
+
+/* User Info - For All Users */
+.hc-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.hc-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.hc-info-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* Collector Info */
+.hc-collector-info {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.hc-product-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.hc-product-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* Collector Rating */
+.hc-collector-rating {
+  text-align: center;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.hc-rating-display {
+  margin-bottom: 16px;
+}
+
+.hc-stars {
+  position: relative;
+  display: inline-block;
+  font-size: 20px;
+  color: #e5e7eb;
+  margin-bottom: 8px;
+}
+
+.hc-stars-filled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #f59e0b;
+  overflow: hidden;
+  width: calc(var(--rating) * 20%);
+}
+
+.hc-stars::before {
+  content: "★★★★★";
+}
+
+.hc-stars-filled::before {
+  content: "★★★★★";
+}
+
+.hc-rating-text {
+  display: block;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.hc-rate-section {
+  padding-top: 16px;
+}
+
+.hc-rate-label {
+  font-size: 0.9rem;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.hc-rating-stars {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.hc-rate-star {
+  font-size: 24px;
+  color: #e5e7eb;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.hc-rate-star:hover,
+.hc-rate-star.active {
+  color: #f59e0b;
+}
+
+/* Social Links for All Users */
+.hc-social-links {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 16px;
+}
+
+.hc-social-link {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.hc-social-link:hover {
+  background: #10b981;
+  transform: translateY(-2px);
+}
+
+.hc-social-link img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+/* ===== Empty State ===== */
+.hc-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.hc-empty-img {
+  width: 120px;
+  height: 120px;
+  opacity: 0.5;
+  margin-bottom: 20px;
+}
+
+.hc-empty h3 {
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.hc-empty p {
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ===== Modal ===== */
+.hc-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.hc-modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.hc-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.hc-modal-header h3 {
+  margin: 0;
+  color: #1f2937;
+}
+
+.hc-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.hc-modal-body {
+  padding: 24px;
+  text-align: center;
+}
+
+.hc-modal-footer {
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+  text-align: right;
+}
+
+.hc-modal-btn {
+  background: #059669;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+</style>
+
+<script>
+// Filter functionality
+document.getElementById('roleFilter').addEventListener('change', function() {
+  const selectedRole = this.value;
+  const cards = document.querySelectorAll('.hc-card');
+  
+  cards.forEach(card => {
+    if (selectedRole === 'all' || card.dataset.role === selectedRole) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+});
+
+// Rating functionality
+document.querySelectorAll('.hc-rating-stars').forEach(starsContainer => {
+  const stars = starsContainer.querySelectorAll('.hc-rate-star');
+  let currentRating = 0;
+  
+  stars.forEach(star => {
+    star.addEventListener('click', function() {
+      const rating = parseInt(this.dataset.rating);
+      currentRating = rating;
+      
+      // Update star colors
+      stars.forEach(s => {
+        const starRating = parseInt(s.dataset.rating);
+        if (starRating <= rating) {
+          s.classList.add('active');
+        } else {
+          s.classList.remove('active');
+        }
+      });
+      
+      // Submit rating
+      submitRating(starsContainer.dataset.userId, rating);
+    });
+    
+    star.addEventListener('mouseover', function() {
+      const hoverRating = parseInt(this.dataset.rating);
+      stars.forEach(s => {
+        const starRating = parseInt(s.dataset.rating);
+        if (starRating <= hoverRating) {
+          s.style.color = '#f59e0b';
+        } else {
+          s.style.color = '#e5e7eb';
+        }
+      });
+    });
+    
+    star.addEventListener('mouseout', function() {
+      stars.forEach(s => {
+        const starRating = parseInt(s.dataset.rating);
+        if (starRating <= currentRating) {
+          s.style.color = '#f59e0b';
+        } else {
+          s.style.color = '#e5e7eb';
+        }
+      });
+    });
+  });
+});
+
+function submitRating(userId, rating) {
+  fetch(`/household/rate-collector/${userId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({
+      rating: rating
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById('ratingMessage').textContent = data.message;
+      showRatingModal();
+      
+      // Update the rating display on the card
+      const card = document.querySelector(`[data-user-id="${userId}"]`).closest('.hc-card');
+      const ratingDisplay = card.querySelector('.hc-rating-text');
+      if (ratingDisplay) {
+        ratingDisplay.textContent = `${data.new_avg_rating.toFixed(1)} (${data.new_ratings_count} ratings)`;
+      }
+      
+      // Update the stars display
+      const starsFilled = card.querySelector('.hc-stars-filled');
+      if (starsFilled) {
+        starsFilled.style.width = `calc(${data.new_avg_rating} * 20%)`;
+      }
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error submitting rating:', error);
+    alert('Error submitting rating. Please try again.');
+  });
+}
+
+function showRatingModal() {
+  document.getElementById('ratingModal').style.display = 'flex';
+}
+
+// Close modal functionality
+document.querySelector('.hc-modal-close').addEventListener('click', function() {
+  document.getElementById('ratingModal').style.display = 'none';
+});
+
+document.querySelector('.hc-modal-ok').addEventListener('click', function() {
+  document.getElementById('ratingModal').style.display = 'none';
+});
+
+// CSRF token helper function
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
+{% endblock %}
