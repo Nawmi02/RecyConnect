@@ -1,0 +1,423 @@
+{% extends 'Buyer/b_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bp-container">
+  <div class="bp-header">
+    <h1 class="bp-title">My Profile</h1>
+    <a href="{% url 'buyer:settings' %}" class="bp-edit-btn">
+      <img src="{% static 'edit.png' %}" alt="Edit" class="bp-edit-icon">
+      Edit Profile
+    </a>
+  </div>
+
+  <div class="bp-grid">
+    <!-- PROFILE CARD -->
+    <div class="bp-profile-card">
+      <div class="bp-avatar-section">
+        <div class="bp-avatar-container">
+          {% if request.user.profile_image %}
+            <img class="bp-avatar" src="{{ request.user.profile_image.url }}" alt="Profile photo">
+          {% else %}
+            <div class="bp-avatar-placeholder">
+              <img src="{% static 'icons/avatar-placeholder.png' %}" alt="Profile" class="bp-avatar-img">
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="bp-user-info">
+          <h2 class="bp-user-name">{{ request.user.name|default:"Unnamed Buyer" }}</h2>
+          <p class="bp-user-email">{{ request.user.email }}</p>
+          <div class="bp-role-badge">
+            {{ request.user.get_role_display|default:"Buyer" }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAILS CARD -->
+    <div class="bp-details-card">
+      <div class="bp-section">
+        <h3 class="bp-section-title">Business Information</h3>
+        
+        <div class="bp-detail-group">
+          <div class="bp-detail-item">
+            <div class="bp-detail-header">
+              <div class="bp-detail-icon">
+                <img src="{% static 'phone.png' %}" alt="Phone" class="bp-sharp-icon">
+              </div>
+              <span class="bp-detail-label">Business Phone</span>
+            </div>
+            <div class="bp-detail-value">{{ request.user.phone|default:"Not provided" }}</div>
+          </div>
+
+          <div class="bp-detail-item">
+            <div class="bp-detail-header">
+              <div class="bp-detail-icon">
+                <img src="{% static 'address.png' %}" alt="Address" class="bp-sharp-icon">
+              </div>
+              <span class="bp-detail-label">Business Address</span>
+            </div>
+            <div class="bp-detail-value">{{ request.user.address|default:"Not provided" }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bp-section">
+        <h3 class="bp-section-title">Connect & Location</h3>
+        <div class="bp-social-grid">
+          {% if request.user.map_url %}
+            <a class="bp-social-item" href="{{ request.user.map_url }}" target="_blank" rel="noopener">
+              <div class="bp-social-icon">
+                <img src="{% static 'map.png' %}" alt="Map Location" class="bp-sharp-icon">
+              </div>
+              <span class="bp-social-label">Business Location</span>
+            </a>
+          {% else %}
+            <div class="bp-social-item bp-social-disabled">
+              <div class="bp-social-icon">
+                <img src="{% static 'map.png' %}" alt="Map Location" class="bp-sharp-icon">
+              </div>
+              <span class="bp-social-label">Business Location</span>
+            </div>
+          {% endif %}
+
+          {% if request.user.facebook %}
+            <a class="bp-social-item" href="{{ request.user.facebook }}" target="_blank" rel="noopener">
+              <div class="bp-social-icon">
+                <img src="{% static 'fb.png' %}" alt="Facebook" class="bp-sharp-icon">
+              </div>
+              <span class="bp-social-label">Facebook</span>
+            </a>
+          {% else %}
+            <div class="bp-social-item bp-social-disabled">
+              <div class="bp-social-icon">
+                <img src="{% static 'fb.png' %}" alt="Facebook" class="bp-sharp-icon">
+              </div>
+              <span class="bp-social-label">Facebook</span>
+            </div>
+          {% endif %}
+
+          {% if request.user.instagram %}
+            <a class="bp-social-item" href="{{ request.user.instagram }}" target="_blank" rel="noopener">
+              <div class="bp-social-icon">
+                <img src="{% static 'insta.jpeg' %}" alt="Instagram" class="bp-sharp-icon">
+              </div>
+              <span class="bp-social-label">Instagram</span>
+            </a>
+          {% else %}
+            <div class="bp-social-item bp-social-disabled">
+              <div class="bp-social-icon">
+                <img src="{% static 'insta.jpeg' %}" alt="Instagram" class="bp-sharp-icon">
+              </div>
+              <span class="bp-social-label">Instagram</span>
+            </div>
+          {% endif %}
+
+          {% if request.user.twitter %}
+            <a class="bp-social-item" href="{{ request.user.twitter }}" target="_blank" rel="noopener">
+              <div class="bp-social-icon">
+                <img src="{% static 'X ic.jpg' %}" alt="Twitter" class="bp-sharp-icon">
+              </div>
+              <span class="bp-social-label">Twitter</span>
+            </a>
+          {% else %}
+            <div class="bp-social-item bp-social-disabled">
+              <div class="bp-social-icon">
+                <img src="{% static 'X ic.jpg' %}" alt="Twitter" class="bp-sharp-icon">
+              </div>
+              <span class="bp-social-label">Twitter</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== Base Styles ===== */
+.bp-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.bp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.bp-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #059669;
+  margin: 0;
+}
+
+.bp-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #059669;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+}
+
+.bp-edit-btn:hover {
+  background: #047857;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.3);
+}
+
+.bp-edit-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.bp-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .bp-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* ===== Profile Card ===== */
+.bp-profile-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  height: fit-content;
+}
+
+.bp-avatar-section {
+  text-align: center;
+}
+
+.bp-avatar-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.bp-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid  #1E90FF;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+}
+
+.bp-avatar-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid  #1E90FF;
+}
+
+.bp-avatar-img {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+
+.bp-user-info {
+  text-align: center;
+}
+
+.bp-user-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.bp-user-email {
+  color: #6b7280;
+  margin: 0 0 16px 0;
+  font-size: 0.95rem;
+}
+
+.bp-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.bp-badge-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* ===== Details Card ===== */
+.bp-details-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.bp-section {
+  margin-bottom: 32px;
+}
+
+.bp-section:last-child {
+  margin-bottom: 0;
+}
+
+.bp-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.bp-detail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bp-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bp-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bp-detail-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bp-detail-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.bp-detail-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.bp-detail-value {
+  background: #f8fafc;
+  padding: 16px 20px;
+  border-radius: 12px;
+  color: #1f2937;
+  font-weight: 500;
+  border: 1px solid #e5e7eb;
+  margin-left: 36px;
+}
+
+/* ===== Social Grid ===== */
+.bp-social-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.bp-social-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.bp-social-item:hover {
+  background: #3b82f6;
+  color: white;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+
+.bp-social-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bp-social-disabled:hover {
+  background: #ffffff;
+  color: inherit;
+  transform: none;
+  box-shadow: none;
+}
+
+.bp-social-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bp-social-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.bp-social-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ===== Sharp Icons Fix ===== */
+.bp-sharp-icon {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  -ms-interpolation-mode: nearest-neighbor;
+}
+</style>
+{% endblock %}

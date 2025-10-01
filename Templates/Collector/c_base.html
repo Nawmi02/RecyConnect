@@ -172,8 +172,8 @@
       <!-- Right: Profile -->
       <div class="profile">
         <button class="avatar-btn" id="avatarBtn" aria-label="Profile menu">
-          {% if request.user.is_authenticated and request.user.profile_pic %}
-            <img class="avatar" src="{{ request.user.profile_pic.url }}" alt="Profile" />
+          {% if request.user.is_authenticated and request.user.profile_image %}
+            <img class="avatar" src="{{ request.user.profile_image.url }}" alt="Profile" />
           {% else %}
             <img class="avatar" src="{% static 'icons/avatar-placeholder.png' %}" alt="Profile" />
           {% endif %}

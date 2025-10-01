@@ -1,0 +1,425 @@
+{% extends 'Household/h_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="hp-container">
+  <div class="hp-header">
+    <h1 class="hp-title">My Profile</h1>
+    <a href="{% url 'household:settings' %}" class="hp-edit-btn">
+      <img src="{% static 'edit.png' %}" alt="Edit" class="hp-edit-icon">
+      Edit Profile
+    </a>
+  </div>
+
+  <div class="hp-grid">
+    <!-- PROFILE CARD -->
+    <div class="hp-profile-card">
+      <div class="hp-avatar-section">
+        <div class="hp-avatar-container">
+          {% if request.user.profile_image %}
+            <img class="hp-avatar" src="{{ request.user.profile_image.url }}" alt="Profile photo">
+          {% else %}
+            <div class="hp-avatar-placeholder">
+              <img src="{% static 'icons/avatar-placeholder.png' %}" alt="Profile" class="hp-avatar-img">
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="hp-user-info">
+          <h2 class="hp-user-name">{{ request.user.name|default:"Unnamed User" }}</h2>
+          <p class="hp-user-email">{{ request.user.email }}</p>
+          <div class="hp-role-badge">
+            {{ request.user.get_role_display|default:"Household" }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAILS CARD -->
+    <div class="hp-details-card">
+      <div class="hp-section">
+        <h3 class="hp-section-title">Contact Information</h3>
+        
+        <div class="hp-detail-group">
+          <div class="hp-detail-item">
+            <div class="hp-detail-header">
+              <div class="hp-detail-icon">
+                <img src="{% static 'phone.png' %}" alt="Phone" class="hp-sharp-icon">
+              </div>
+              <span class="hp-detail-label">Phone Number</span>
+            </div>
+            <div class="hp-detail-value">{{ request.user.phone|default:"Not provided" }}</div>
+          </div>
+
+          <div class="hp-detail-item">
+            <div class="hp-detail-header">
+              <div class="hp-detail-icon">
+                <img src="{% static 'address.png' %}" alt="Address" class="hp-sharp-icon">
+              </div>
+              <span class="hp-detail-label">Address</span>
+            </div>
+            <div class="hp-detail-value">{{ request.user.address|default:"Not provided" }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hp-section">
+        <h3 class="hp-section-title">Social Links</h3>
+        <div class="hp-social-grid">
+          {% if request.user.map_url %}
+            <a class="hp-social-item" href="{{ request.user.map_url }}" target="_blank" rel="noopener">
+              <div class="hp-social-icon">
+                <img src="{% static 'map.png' %}" alt="Map Location" class="hp-sharp-icon">
+              </div>
+              <span class="hp-social-label">Map Location</span>
+            </a>
+          {% else %}
+            <div class="hp-social-item hp-social-disabled">
+              <div class="hp-social-icon">
+                <img src="{% static 'map.png' %}" alt="Map Location" class="hp-sharp-icon">
+              </div>
+              <span class="hp-social-label">Map Location</span>
+            </div>
+          {% endif %}
+
+          {% if request.user.facebook %}
+            <a class="hp-social-item" href="{{ request.user.facebook }}" target="_blank" rel="noopener">
+              <div class="hp-social-icon">
+                <img src="{% static 'fb.png' %}" alt="Facebook" class="hp-sharp-icon">
+              </div>
+              <span class="hp-social-label">Facebook</span>
+            </a>
+          {% else %}
+            <div class="hp-social-item hp-social-disabled">
+              <div class="hp-social-icon">
+                <img src="{% static 'fb.png' %}" alt="Facebook" class="hp-sharp-icon">
+              </div>
+              <span class="hp-social-label">Facebook</span>
+            </div>
+          {% endif %}
+
+          {% if request.user.instagram %}
+            <a class="hp-social-item" href="{{ request.user.instagram }}" target="_blank" rel="noopener">
+              <div class="hp-social-icon">
+                <img src="{% static 'insta.jpeg' %}" alt="Instagram" class="hp-sharp-icon">
+              </div>
+              <span class="hp-social-label">Instagram</span>
+            </a>
+          {% else %}
+            <div class="hp-social-item hp-social-disabled">
+              <div class="hp-social-icon">
+                <img src="{% static 'insta.jpeg' %}" alt="Instagram" class="hp-sharp-icon">
+              </div>
+              <span class="hp-social-label">Instagram</span>
+            </div>
+          {% endif %}
+
+          {% if request.user.twitter %}
+            <a class="hp-social-item" href="{{ request.user.twitter }}" target="_blank" rel="noopener">
+              <div class="hp-social-icon">
+                <img src="{% static 'X ic.jpg' %}" alt="Twitter" class="hp-sharp-icon">
+              </div>
+              <span class="hp-social-label">Twitter</span>
+            </a>
+          {% else %}
+            <div class="hp-social-item hp-social-disabled">
+              <div class="hp-social-icon">
+                <img src="{% static 'X ic.jpg' %}" alt="Twitter" class="hp-sharp-icon">
+              </div>
+              <span class="hp-social-label">Twitter</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== Base Styles ===== */
+.hp-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.hp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.hp-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #059669;
+  margin: 0;
+}
+
+.hp-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #059669;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+}
+
+.hp-edit-btn:hover {
+  background: #047857;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.3);
+}
+
+.hp-edit-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.hp-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .hp-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* ===== Profile Card ===== */
+.hp-profile-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  height: fit-content;
+}
+
+.hp-avatar-section {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.hp-avatar-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.hp-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #10b981;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+}
+
+.hp-avatar-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid #10b981;
+}
+
+.hp-avatar-img {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+
+.hp-user-info {
+  text-align: center;
+}
+
+.hp-user-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.hp-user-email {
+  color: #6b7280;
+  margin: 0 0 16px 0;
+  font-size: 0.95rem;
+}
+
+.hp-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #d1fae5;
+  color: #065f46;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.hp-badge-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+
+/* ===== Details Card ===== */
+.hp-details-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.hp-section {
+  margin-bottom: 32px;
+}
+
+.hp-section:last-child {
+  margin-bottom: 0;
+}
+
+.hp-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.hp-detail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hp-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hp-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hp-detail-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hp-detail-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hp-detail-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.hp-detail-value {
+  background: #f8fafc;
+  padding: 16px 20px;
+  border-radius: 12px;
+  color: #1f2937;
+  font-weight: 500;
+  border: 1px solid #e5e7eb;
+  margin-left: 36px;
+}
+
+/* ===== Social Grid ===== */
+.hp-social-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.hp-social-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.hp-social-item:hover {
+  background: #10b981;
+  color: white;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.hp-social-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hp-social-disabled:hover {
+  background: #ffffff;
+  color: inherit;
+  transform: none;
+  box-shadow: none;
+}
+
+.hp-social-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hp-social-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.hp-social-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ===== Sharp Icons Fix ===== */
+.hp-sharp-icon {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  -ms-interpolation-mode: nearest-neighbor;
+}
+</style>
+{% endblock %}

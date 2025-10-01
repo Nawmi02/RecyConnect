@@ -1,0 +1,539 @@
+{% extends 'Collector/c_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="cp-container">
+  <div class="cp-header">
+    <h1 class="cp-title">My Profile</h1>
+    <a href="{% url 'collector:settings' %}" class="cp-edit-btn">
+      <img src="{% static 'edit.png' %}" alt="Edit" class="cp-edit-icon">
+      Edit Profile
+    </a>
+  </div>
+
+  <div class="cp-grid">
+    <!-- PROFILE CARD -->
+    <div class="cp-profile-card">
+      <div class="cp-avatar-section">
+        <div class="cp-avatar-container">
+          {% if request.user.profile_image %}
+            <img class="cp-avatar" src="{{ request.user.profile_image.url }}" alt="Profile photo">
+          {% else %}
+            <div class="cp-avatar-placeholder">
+              <img src="{% static 'icons/avatar-placeholder.png' %}" alt="Profile" class="cp-avatar-img">
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="cp-user-info">
+          <h2 class="cp-user-name">{{ request.user.name|default:"Unnamed Collector" }}</h2>
+          <p class="cp-user-email">{{ request.user.email }}</p>
+          <div class="cp-role-badge">
+            {{ request.user.get_role_display|default:"Collector" }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Type -->
+      <div class="cp-product-section">
+        <div class="cp-product-badge">
+          <img src="{% static 'icons/package.png' %}" alt="Product" class="cp-product-icon">
+          <span class="cp-product-label">Product Type:</span>
+          <span class="cp-product-value">{{ request.user.get_collector_product_display|default:"Not specified" }}</span>
+        </div>
+      </div>
+
+      <!-- Rating -->
+      <div class="cp-rating-section">
+        <div class="cp-rating-display">
+          {% with avg=request.user.average_rating|default:0 cnt=request.user.ratings_count|default:0 %}
+            <div class="cp-stars" style="--rating: {{ avg }};">
+              <div class="cp-stars-filled"></div>
+            </div>
+            <div class="cp-rating-info">
+              <span class="cp-rating-value">{{ avg|floatformat:1 }}/5</span>
+              <span class="cp-rating-count">({{ cnt }} rating{{ cnt|pluralize }})</span>
+            </div>
+          {% endwith %}
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAILS CARD -->
+    <div class="cp-details-card">
+      <div class="cp-section">
+        <h3 class="cp-section-title">Contact Information</h3>
+        
+        <div class="cp-detail-group">
+          <div class="cp-detail-item">
+            <div class="cp-detail-header">
+              <div class="cp-detail-icon">
+                <img src="{% static 'phone.png' %}" alt="Phone" class="cp-sharp-icon">
+              </div>
+              <span class="cp-detail-label">Phone Number</span>
+            </div>
+            <div class="cp-detail-value">{{ request.user.phone|default:"Not provided" }}</div>
+          </div>
+
+          <div class="cp-detail-item">
+            <div class="cp-detail-header">
+              <div class="cp-detail-icon">
+                <img src="{% static 'address.png' %}" alt="Address" class="cp-sharp-icon">
+              </div>
+              <span class="cp-detail-label">Address</span>
+            </div>
+            <div class="cp-detail-value">{{ request.user.address|default:"Not provided" }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cp-section">
+        <h3 class="cp-section-title">Social Links</h3>
+        <div class="cp-social-grid">
+          {% if request.user.map_url %}
+            <a class="cp-social-item" href="{{ request.user.map_url }}" target="_blank" rel="noopener">
+              <div class="cp-social-icon">
+                <img src="{% static 'map.png' %}" alt="Map Location" class="cp-sharp-icon">
+              </div>
+              <span class="cp-social-label">Map Location</span>
+            </a>
+          {% else %}
+            <div class="cp-social-item cp-social-disabled">
+              <div class="cp-social-icon">
+                <img src="{% static 'map.png' %}" alt="Map Location" class="cp-sharp-icon">
+              </div>
+              <span class="cp-social-label">Map Location</span>
+            </div>
+          {% endif %}
+
+          {% if request.user.facebook %}
+            <a class="cp-social-item" href="{{ request.user.facebook }}" target="_blank" rel="noopener">
+              <div class="cp-social-icon">
+                <img src="{% static 'fb.png' %}" alt="Facebook" class="cp-sharp-icon">
+              </div>
+              <span class="cp-social-label">Facebook</span>
+            </a>
+          {% else %}
+            <div class="cp-social-item cp-social-disabled">
+              <div class="cp-social-icon">
+                <img src="{% static 'fb.png' %}" alt="Facebook" class="cp-sharp-icon">
+              </div>
+              <span class="cp-social-label">Facebook</span>
+            </div>
+          {% endif %}
+
+          {% if request.user.instagram %}
+            <a class="cp-social-item" href="{{ request.user.instagram }}" target="_blank" rel="noopener">
+              <div class="cp-social-icon">
+                <img src="{% static 'insta.jpeg' %}" alt="Instagram" class="cp-sharp-icon">
+              </div>
+              <span class="cp-social-label">Instagram</span>
+            </a>
+          {% else %}
+            <div class="cp-social-item cp-social-disabled">
+              <div class="cp-social-icon">
+                <img src="{% static 'insta.jpeg' %}" alt="Instagram" class="cp-sharp-icon">
+              </div>
+              <span class="cp-social-label">Instagram</span>
+            </div>
+          {% endif %}
+
+          {% if request.user.twitter %}
+            <a class="cp-social-item" href="{{ request.user.twitter }}" target="_blank" rel="noopener">
+              <div class="cp-social-icon">
+                <img src="{% static 'X ic.jpg' %}" alt="Twitter" class="cp-sharp-icon">
+              </div>
+              <span class="cp-social-label">Twitter</span>
+            </a>
+          {% else %}
+            <div class="cp-social-item cp-social-disabled">
+              <div class="cp-social-icon">
+                <img src="{% static 'X ic.jpg' %}" alt="Twitter" class="cp-sharp-icon">
+              </div>
+              <span class="cp-social-label">Twitter</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== Base Styles ===== */
+.cp-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.cp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.cp-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #059669;
+  margin: 0;
+}
+
+.cp-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #059669;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+}
+
+.cp-edit-btn:hover {
+  background: #047857;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.3);
+}
+
+.cp-edit-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.cp-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .cp-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* ===== Profile Card ===== */
+.cp-profile-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  height: fit-content;
+}
+
+.cp-avatar-section {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.cp-avatar-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.cp-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #009E60;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);
+}
+
+.cp-avatar-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid #009E60;
+}
+
+.cp-avatar-img {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+
+.cp-user-info {
+  text-align: center;
+}
+
+.cp-user-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.cp-user-email {
+  color: #6b7280;
+  margin: 0 0 16px 0;
+  font-size: 0.95rem;
+}
+
+.cp-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #D0F0C0;
+  color: #009E60;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.cp-badge-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* ===== Product Section ===== */
+.cp-product-section {
+  margin: 24px 0;
+  padding: 20px 0;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cp-product-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.cp-product-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.cp-product-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.cp-product-value {
+  color: #059669;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+
+/* ===== Rating Section ===== */
+.cp-rating-section {
+  margin-top: 24px;
+}
+
+.cp-rating-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.cp-stars {
+  position: relative;
+  display: inline-block;
+  font-size: 28px;
+  color: #e5e7eb;
+  line-height: 1;
+}
+
+.cp-stars-filled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #f59e0b;
+  overflow: hidden;
+  width: calc(var(--rating) * 20%);
+}
+
+.cp-stars::before {
+  content: "★★★★★";
+}
+
+.cp-stars-filled::before {
+  content: "★★★★★";
+}
+
+.cp-rating-info {
+  text-align: center;
+}
+
+.cp-rating-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.cp-rating-count {
+  color: #6b7280;
+  font-weight: 500;
+  margin-left: 6px;
+  font-size: 0.9rem;
+}
+
+/* ===== Details Card ===== */
+.cp-details-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.cp-section {
+  margin-bottom: 32px;
+}
+
+.cp-section:last-child {
+  margin-bottom: 0;
+}
+
+.cp-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.cp-detail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cp-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cp-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cp-detail-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-detail-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cp-detail-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.cp-detail-value {
+  background: #f8fafc;
+  padding: 16px 20px;
+  border-radius: 12px;
+  color: #1f2937;
+  font-weight: 500;
+  border: 1px solid #e5e7eb;
+  margin-left: 36px;
+}
+
+/* ===== Social Grid ===== */
+.cp-social-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.cp-social-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.cp-social-item:hover {
+  background: #f59e0b;
+  color: white;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+}
+
+.cp-social-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cp-social-disabled:hover {
+  background: #ffffff;
+  color: inherit;
+  transform: none;
+  box-shadow: none;
+}
+
+.cp-social-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-social-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.cp-social-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ===== Sharp Icons Fix ===== */
+.cp-sharp-icon {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  -ms-interpolation-mode: nearest-neighbor;
+}
+</style>
+{% endblock %}

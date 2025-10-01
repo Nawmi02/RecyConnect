@@ -1,8 +1,11 @@
+# models.py
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.base_user import BaseUserManager
+from django.conf import settings
+from django.db.models import Avg, Count
 from urllib.parse import urlparse
 
 
@@ -51,7 +54,6 @@ class User(AbstractBaseUser):
         ("buyer",     "Buyer"),
     ]
 
-    # --- product kind (for collector role) ---
     class ProductKind(models.TextChoices):
         PLASTIC = "plastic", "Plastic"
         PAPER   = "paper",   "Paper"
@@ -77,14 +79,11 @@ class User(AbstractBaseUser):
     phone = models.CharField(max_length=20, blank=True)
     address = models.CharField(max_length=255, blank=True)
 
-    # profile picture (NOT required at registration)
     profile_image = models.ImageField(
-        upload_to="user_avatars/%Y/%m/",
-        blank=True, null=True,
+        upload_to="user_avatars/%Y/%m/", blank=True, null=True,
         help_text="Upload a clear profile photo.",
     )
 
-    # Google Maps link (NOT required at registration; validated if provided)
     map_url = models.URLField(
         blank=True,
         help_text="Google Maps link to your address.",
@@ -115,6 +114,10 @@ class User(AbstractBaseUser):
         help_text="ID/visiting card (required for Collector and Recycling Centre).",
     )
 
+    # === ratings aggregate (for collectors) ===
+    average_rating = models.FloatField(default=0.0)
+    ratings_count  = models.PositiveIntegerField(default=0)
+
     objects = UserManager()
 
     USERNAME_FIELD = "email"
@@ -123,7 +126,6 @@ class User(AbstractBaseUser):
     def __str__(self):
         return f"{self.email} ({self.role})"
 
-    # helpers
     def _is_valid_google_maps_url(self) -> bool:
         if not self.map_url:
             return False
@@ -136,7 +138,10 @@ class User(AbstractBaseUser):
             (host.endswith(".google.com") and path.startswith("/maps"))
         )
 
-    # validations at save-time (keep light so registration passes)
+    @property
+    def is_collector(self) -> bool:
+        return self.role == "collector"
+
     def clean(self):
         super().clean()
         errors = {}
@@ -147,7 +152,6 @@ class User(AbstractBaseUser):
                 "(e.g., https://maps.google.com/... or https://maps.app.goo.gl/...)."
             )
 
-        # Keep hard requirement for collectors/recyclers at registration:
         if self.role in ("collector", "recycler") and not self.id_card_image:
             errors["id_card_image"] = (
                 "An ID or visiting card image is required for Collector and Recycling Centre accounts."
@@ -156,10 +160,8 @@ class User(AbstractBaseUser):
         if errors:
             raise ValidationError(errors)
 
-    # approval gate
     def approve(self, by_user):
         approve_errors = {}
-        # Enforce required fields at approval time:
         if not self.profile_image:
             approve_errors["profile_image"] = "A profile picture is required before approval."
         if not (self.is_staff or self.is_superuser):
@@ -179,9 +181,81 @@ class User(AbstractBaseUser):
         self.approved_by = by_user
         self.save(update_fields=["is_approved", "is_active", "approved_at", "approved_by"])
 
+    def recompute_rating(self):
+        agg = self.received_ratings.aggregate(avg=Avg("stars"), cnt=Count("id"))
+        avg = float(agg["avg"] or 0.0)
+        cnt = int(agg["cnt"] or 0)
+        self.average_rating = round(avg, 2)
+        self.ratings_count = cnt
+        self.save(update_fields=["average_rating", "ratings_count"])
+
     @property
     def requires_id_image(self) -> bool:
         return self.role in ("collector", "recycler")
 
     class Meta:
         ordering = ("-date_joined",)
+
+
+# === Rating model: ANY user can rate a COLLECTOR (no self-rating) ===
+class CollectorRating(models.Model):
+    """
+    One rater (any role) -> one Collector rating (0..5).
+    """
+    collector = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="received_ratings",
+        limit_choices_to={"role": "collector"},  # target must be collector
+    )
+    rater = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="given_ratings",
+        # NOTE: no role limit; ANY user can rate
+    )
+    stars = models.PositiveSmallIntegerField(help_text="0–5")
+    comment = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("collector", "rater")
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(stars__gte=0) & models.Q(stars__lte=5),
+                name="collector_rating_stars_0_5",
+            )
+        ]
+        ordering = ("-updated_at",)
+
+    def __str__(self):
+        return f"Rating {self.stars}/5 by {self.rater_id} -> {self.collector_id}"
+
+    def clean(self):
+        errors = {}
+        if self.collector_id == self.rater_id:
+            errors["collector"] = "You cannot rate yourself."
+        # runtime validation for roles (defensive)
+        if getattr(self.collector, "role", None) != "collector":
+            errors["collector"] = "Target user must be a Collector."
+        if not (0 <= int(self.stars) <= 5):
+            errors["stars"] = "Stars must be between 0 and 5."
+        if errors:
+            raise ValidationError(errors)
+
+
+# === Signals: keep User.average_rating & ratings_count in sync ===
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+@receiver(post_save, sender=CollectorRating)
+def _on_rating_saved(sender, instance: CollectorRating, **kwargs):
+    if instance.collector_id:
+        instance.collector.recompute_rating()
+
+@receiver(post_delete, sender=CollectorRating)
+def _on_rating_deleted(sender, instance: CollectorRating, **kwargs):
+    if instance.collector_id:
+        instance.collector.recompute_rating()

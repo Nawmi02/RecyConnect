@@ -1,0 +1,496 @@
+{% extends 'Collector/c_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="cset-container">
+  <h1 class="cset-page-title">Account Settings</h1>
+
+  {% if messages %}
+    <div class="cset-msgs">
+      {% for message in messages %}
+        <div class="cset-msg {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- ===== Card 1: Profile (stacked) ===== -->
+  <div class="cset-card">
+    <div class="cset-card-header">
+      <h2>Profile Information</h2>
+      <p>Update your personal information, product type, and social media links</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="cset-form">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="profile">
+
+      <div class="cset-row cset-row-avatar">
+        <div class="cset-avatar-wrap">
+          {% if request.user.profile_image %}
+            <img src="{{ request.user.profile_image.url }}" alt="Avatar" class="cset-avatar">
+          {% else %}
+            <div class="cset-avatar cset-avatar-placeholder">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+          {% endif %}
+          <label class="cset-btn cset-btn-light">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Change Photo
+            <input type="file" name="profile_image" accept="image/*" hidden>
+          </label>
+        </div>
+
+        <div class="cset-fields">
+          <div class="cset-field-group">
+            <label class="cset-label">Full Name</label>
+            <input class="cset-input" type="text" name="name" value="{{ request.user.name }}" placeholder="Enter your full name">
+          </div>
+
+          <div class="cset-field-group">
+            <label class="cset-label">Phone Number</label>
+            <input class="cset-input" type="text" name="phone" value="{{ request.user.phone }}" placeholder="+880...">
+          </div>
+
+          <div class="cset-field-group">
+            <label class="cset-label">Address</label>
+            <input class="cset-input" type="text" name="address" value="{{ request.user.address }}" placeholder="Street, City, Country">
+          </div>
+
+          <div class="cset-field-group">
+            <label class="cset-label">Google Map URL</label>
+            <input class="cset-input" type="url" name="map_url" value="{{ request.user.map_url }}" placeholder="https://maps.google.com/...">
+          </div>
+        </div>
+      </div>
+
+      <div class="cset-row cset-row-two">
+        <div class="cset-field-group">
+          <label class="cset-label">Collector Product Type</label>
+          <select class="cset-input" name="collector_product">
+            <option value="">-- Select product type --</option>
+            {% for value,label in product_choices %}
+              <option value="{{ value }}" {% if request.user.collector_product == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="cset-field-group">
+          <label class="cset-label">ID Card / Visiting Card</label>
+          <input class="cset-input" type="file" name="id_card_image" accept="image/*">
+          {% if request.user.id_card_image %}
+            <div class="cset-help">Current file: {{ request.user.id_card_image.name|slice:"-28:" }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="cset-row cset-row-two">
+        <div class="cset-field-group">
+          <label class="cset-label">Facebook Profile</label>
+          <input class="cset-input" type="url" name="facebook" value="{{ request.user.facebook }}" placeholder="https://facebook.com/...">
+        </div>
+        <div class="cset-field-group">
+          <label class="cset-label">Instagram Profile</label>
+          <input class="cset-input" type="url" name="instagram" value="{{ request.user.instagram }}" placeholder="https://instagram.com/...">
+        </div>
+      </div>
+
+      <div class="cset-field-group">
+        <label class="cset-label">Twitter / X Profile</label>
+        <input class="cset-input" type="url" name="twitter" value="{{ request.user.twitter }}" placeholder="https://twitter.com/...">
+      </div>
+
+      <div class="cset-actions">
+        <button class="cset-btn cset-btn-primary" type="submit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          Save Profile
+        </button>
+        <a class="cset-btn cset-btn-secondary" href="{% url 'collector:profile' %}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          View Profile
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- ===== Card 2: Change Password (stacked) ===== -->
+  <div class="cset-card">
+    <div class="cset-card-header">
+      <h2>Change Password</h2>
+      <p>Use a strong, unique password to secure your account</p>
+    </div>
+
+    <form method="post" class="cset-form">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="password">
+
+      <div class="cset-field-group">
+        <label class="cset-label">Current Password</label>
+        <div class="cset-pass-field">
+          <input class="cset-input" type="password" name="old_password" id="cset_old_password" required>
+          <button type="button" class="cset-eye" data-target="cset_old_password" aria-label="Toggle password visibility">
+            <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="cset-field-group">
+        <label class="cset-label">New Password</label>
+        <div class="cset-pass-field">
+          <input class="cset-input" type="password" name="new_password" id="cset_new_password" minlength="8" required>
+          <button type="button" class="cset-eye" data-target="cset_new_password" aria-label="Toggle password visibility">
+            <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="cset-hint">Must be at least 8 characters long</div>
+      </div>
+
+      <div class="cset-field-group">
+        <label class="cset-label">Confirm New Password</label>
+        <div class="cset-pass-field">
+          <input class="cset-input" type="password" name="confirm_password" id="cset_confirm_password" minlength="8" required>
+          <button type="button" class="cset-eye" data-target="cset_confirm_password" aria-label="Toggle password visibility">
+            <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg class="eye-closed" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="cset-actions">
+        <button class="cset-btn cset-btn-primary" type="submit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          Update Password
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Enhanced eye toggle with two different icons
+  document.querySelectorAll('.cset-eye').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-target');
+      const input = document.getElementById(id);
+      const eyeOpen = btn.querySelector('.eye-open');
+      const eyeClosed = btn.querySelector('.eye-closed');
+      
+      if (input) {
+        if (input.type === 'password') {
+          input.type = 'text';
+          eyeOpen.style.display = 'none';
+          eyeClosed.style.display = 'block';
+        } else {
+          input.type = 'password';
+          eyeOpen.style.display = 'block';
+          eyeClosed.style.display = 'none';
+        }
+      }
+    });
+  });
+
+  // Add focus states for better UX
+  document.querySelectorAll('.cset-input').forEach(input => {
+    input.addEventListener('focus', () => {
+      input.parentElement.classList.add('focused');
+    });
+    
+    input.addEventListener('blur', () => {
+      input.parentElement.classList.remove('focused');
+    });
+  });
+</script>
+
+<style>
+/* ===== Scoped styles (won't affect navbar) ===== */
+.cset-container { 
+  max-width: 1100px; 
+  margin: 0 auto; 
+  padding: 24px; 
+}
+
+.cset-page-title { 
+  font-size: 1.8rem; 
+  font-weight: 700; 
+  color: #1e293b; 
+  margin-bottom: 24px;
+  letter-spacing: -0.025em;
+}
+
+.cset-card { 
+  background: #fff; 
+  border-radius: 12px; 
+  box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04); 
+  padding: 28px; 
+  margin-bottom: 24px;
+  border: 1px solid #f1f5f9;
+}
+
+.cset-card-header h2 { 
+  margin: 0 0 8px; 
+  font-size: 1.3rem; 
+  color: #0f172a; 
+  font-weight: 600;
+}
+
+.cset-card-header p { 
+  margin: 0 0 20px; 
+  color: #64748b; 
+  font-size: .95rem; 
+  line-height: 1.5;
+}
+
+.cset-form .cset-row { 
+  margin-bottom: 20px; 
+}
+
+.cset-field-group {
+  margin-bottom: 18px;
+}
+
+.cset-label { 
+  display: block; 
+  font-size: .9rem; 
+  margin-bottom: 8px; 
+  color: #374151; 
+  font-weight: 500;
+}
+
+.cset-input { 
+  width: 100%; 
+  border: 1px solid #d1d5db; 
+  border-radius: 8px; 
+  padding: 12px 14px; 
+  font-size: .95rem; 
+  transition: all 0.2s ease;
+  background: #fff;
+}
+
+.cset-input:focus { 
+  outline: none; 
+  border-color: #10b981; 
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12); 
+}
+
+.cset-input::placeholder {
+  color: #9ca3af;
+}
+
+.cset-row-avatar { 
+  display: flex; 
+  gap: 24px; 
+  align-items: flex-start; 
+  flex-wrap: wrap; 
+}
+
+.cset-avatar-wrap { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: flex-start; 
+  gap: 12px; 
+}
+
+.cset-avatar { 
+  width: 96px; 
+  height: 96px; 
+  border-radius: 50%; 
+  object-fit: cover; 
+  border: 2px solid #e5e7eb; 
+}
+
+.cset-avatar-placeholder { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  background: #f8fafc; 
+  color: #64748b;
+  border: 2px dashed #e2e8f0;
+}
+
+.cset-fields { 
+  flex: 1; 
+  min-width: 280px; 
+}
+
+.cset-row-two { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 16px; 
+}
+
+@media (max-width: 700px){ 
+  .cset-row-two { 
+    grid-template-columns: 1fr; 
+  } 
+}
+
+.cset-pass-field { 
+  position: relative; 
+}
+
+.cset-pass-field.focused .cset-input {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+.cset-eye { 
+  position: absolute; 
+  right: 12px; 
+  top: 50%; 
+  transform: translateY(-50%); 
+  border: none; 
+  background: transparent; 
+  cursor: pointer; 
+  color: #6b7280; 
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.cset-eye:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.cset-hint {
+  font-size: .8rem;
+  color: #6b7280;
+  margin-top: 6px;
+}
+
+.cset-help {
+  display: block;
+  margin-top: 6px;
+  color: #64748b;
+  font-size: .85rem;
+  font-style: italic;
+}
+
+.cset-actions { 
+  margin-top: 24px; 
+  display: flex; 
+  gap: 12px; 
+  flex-wrap: wrap; 
+}
+
+.cset-btn { 
+  border: none; 
+  border-radius: 8px; 
+  padding: 12px 20px; 
+  cursor: pointer; 
+  font-weight: 600; 
+  text-decoration: none; 
+  display: inline-flex; 
+  align-items: center;
+  justify-content: center;
+  font-size: .95rem;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.cset-btn-primary { 
+  background: #10b981; 
+  color: #fff; 
+}
+
+.cset-btn-primary:hover { 
+  background: #059669; 
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+}
+
+.cset-btn-secondary { 
+  background: #f8fafc; 
+  border: 1px solid #e2e8f0; 
+  color: #374151; 
+}
+
+.cset-btn-secondary:hover { 
+  background: #eef2f7; 
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.cset-btn-light { 
+  background: #f8fafc; 
+  border: 1px solid #e2e8f0; 
+  color: #374151; 
+  padding: 10px 16px;
+  font-size: .9rem;
+}
+
+.cset-btn-light:hover {
+  background: #eef2f7;
+  border-color: #cbd5e1;
+}
+
+.cset-msgs { 
+  margin-bottom: 20px; 
+}
+
+.cset-msg { 
+  padding: 14px 16px; 
+  border-radius: 8px; 
+  font-size: .95rem; 
+  margin-bottom: 12px;
+  border-left: 4px solid;
+}
+
+.cset-msg.success { 
+  background: #f0fdf4; 
+  color: #166534; 
+  border-color: #22c55e;
+  border-left-color: #22c55e;
+}
+
+.cset-msg.error, .cset-msg.danger { 
+  background: #fef2f2; 
+  color: #991b1b; 
+  border-color: #ef4444;
+  border-left-color: #ef4444;
+}
+
+.cset-msg.info { 
+  background: #eff6ff; 
+  color: #1e40af; 
+  border-color: #3b82f6;
+  border-left-color: #3b82f6;
+}
+</style>
+{% endblock %}
