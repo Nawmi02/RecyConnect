@@ -1,9 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.contrib.auth import update_session_auth_hash
-from User.models import User
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.db import models 
+from User.models import User, CollectorRating
 
 from Education.views import (
     education_awareness_h,
@@ -17,9 +22,79 @@ from Education.views import (
 def dashboard(request):
     return render(request, "Household/h_dash.html")
 
+#Community
 @login_required(login_url="user:login")
 def community(request):
-    return render(request, "Household/h_community.html")
+    # Get all users except admin and current user
+    users = User.objects.exclude(
+        role='admin'
+    ).exclude(
+        id=request.user.id
+    ).select_related()
+    
+    # Add average rating and ratings count to each user
+    for user in users:
+        if user.role == 'collector':
+            # Calculate average rating and count
+            ratings = CollectorRating.objects.filter(collector=user)
+            if ratings.exists():
+                user.average_rating = ratings.aggregate(avg=models.Avg('stars'))['avg']
+                user.ratings_count = ratings.count()
+            else:
+                user.average_rating = 0.0
+                user.ratings_count = 0
+    
+    context = {
+        'users': users
+    }
+    return render(request, "Household/h_community.html", context)
+
+@login_required
+@require_POST
+@csrf_exempt
+def rate_collector(request, user_id):
+    try:
+        data = json.loads(request.body)
+        rating_value = int(data.get('rating'))
+        
+        if not rating_value or rating_value < 1 or rating_value > 5:
+            return JsonResponse({'success': False, 'error': 'Rating must be between 1 and 5'})
+        
+        collector = get_object_or_404(User, id=user_id, role='collector')
+        
+        # Check if user already rated this collector
+        existing_rating = CollectorRating.objects.filter(
+            rater=request.user,
+            collector=collector
+        ).first()
+        
+        if existing_rating:
+            existing_rating.stars = rating_value
+            existing_rating.save()
+            message = "Rating updated successfully!"
+        else:
+            CollectorRating.objects.create(
+                rater=request.user,
+                collector=collector,
+                stars=rating_value
+            )
+            message = "Rating submitted successfully!"
+        
+        # Recompute the collector's rating
+        collector.recompute_rating()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': message,
+            'new_avg_rating': collector.average_rating,
+            'new_ratings_count': collector.ratings_count
+        })
+        
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Collector not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+    
 
 @login_required(login_url="user:login")
 def marketplace(request):
