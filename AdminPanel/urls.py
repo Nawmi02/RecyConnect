@@ -7,7 +7,7 @@ urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("approvals/", views.approvals, name="approvals"),
     path("approve/<int:pk>/", views.approve_user, name="approve_user"),
-    path("decline/<int:pk>/", views.decline_user, name="decline_user"),  # NEW
+    path("decline/<int:pk>/", views.decline_user, name="decline_user"),  
 
     path("create-admin/", views.create_admin, name="create_admin"),
     path("community/", views.community, name="community"),
