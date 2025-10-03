@@ -1,769 +1,287 @@
-{% extends "Collector/c_base.html" %}
 {% load static %}
-
-{% block content %}
-<style>
-  :root {
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --primary-light: #dbeafe;
-    --success: #10b981;
-    --success-light: #d1fae5;
-    --error: #ef4444;
-    --error-light: #fee2e2;
-    --warning: #f59e0b;
-    --warning-light: #fef3c7;
-    --surface: #ffffff;
-    --surface-alt: #f8fafc;
-    --surface-elevated: #ffffff;
-    --border: #e2e8f0;
-    --border-light: #f1f5f9;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #64748b;
-    --shadow-sm: 0 1px 2px 0 rgba(2, 6, 23, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(2, 6, 23, 0.1), 0 2px 4px -1px rgba(2, 6, 23, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(2, 6, 23, 0.1), 0 4px 6px -2px rgba(2, 6, 23, 0.05);
-    --shadow-xl: 0 20px 25px -5px rgba(2, 6, 23, 0.1), 0 10px 10px -5px rgba(2, 6, 23, 0.04);
-    --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
-    --radius-2xl: 20px;
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    background: #f8fafc;
-    font-family: system-ui, -apple-system, sans-serif;
-    color: var(--text-primary);
-    line-height: 1.5;
-  }
-
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px 20px;
-  }
-
-  /* Header */
-  .page-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border-light);
-  }
-
-  .back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    color: var(--text-secondary);
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .back-btn:hover {
-    background: var(--surface-alt);
-    border-color: var(--primary);
-    color: var(--primary);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-  }
-
-  .item-id {
-    font-size: 14px;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-
-  /* Main Content */
-  .product-card {
-    background: var(--surface);
-    border-radius: var(--radius-2xl);
-    box-shadow: var(--shadow-lg);
-    overflow: hidden;
-    margin-bottom: 24px;
-  }
-
-  .product-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    padding: 32px;
-  }
-
-  @media (max-width: 968px) {
-    .product-layout {
-      grid-template-columns: 1fr;
-      gap: 24px;
-      padding: 24px;
-    }
-  }
-
-  /* Image Section */
-  .image-section {
-    position: relative;
-  }
-
-  .image-container {
-    position: relative;
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    background: var(--surface-alt);
-    border: 1px solid var(--border-light);
-    aspect-ratio: 4/3;
-  }
-
-  .product-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-  }
-
-  .image-container:hover .product-image {
-    transform: scale(1.02);
-  }
-
-  .status-badge {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    padding: 8px 16px;
-    border-radius: var(--radius-lg);
-    font-weight: 600;
-    font-size: 14px;
-    backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: var(--shadow-md);
-  }
-
-  .status-available {
-    background: var(--success-light);
-    color: var(--success);
-  }
-
-  .status-sold {
-    background: var(--error-light);
-    color: var(--error);
-  }
-
-  /* Info Section */
-  .info-section {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .product-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    line-height: 1.2;
-  }
-
-  /* Badges */
-  .badges-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 8px 0;
-  }
-
-  .badge {
-    padding: 6px 12px;
-    border-radius: var(--radius-lg);
-    font-size: 13px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .badge-grade {
-    background: var(--surface);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .badge-type {
-    background: var(--primary-light);
-    color: var(--primary-dark);
-  }
-
-  .badge-location {
-    background: var(--surface-alt);
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-  }
-
-  /* Stats Grid */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin: 16px 0;
-  }
-
-  .stat-card {
-    padding: 16px;
-    border-radius: var(--radius-lg);
-    background: var(--surface-alt);
-    border: 1px solid var(--border-light);
-    transition: all 0.2s ease;
-  }
-
-  .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .stat-label {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-  }
-
-  .stat-value {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-
-  .stat-price {
-    color: var(--primary);
-  }
-
-  /* Seller Info */
-  .seller-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-    background: var(--surface-alt);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-light);
-  }
-
-  .seller-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
-    font-size: 16px;
-  }
-
-  .seller-details {
-    flex: 1;
-  }
-
-  .seller-name {
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 2px;
-  }
-
-  .seller-rating {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 14px;
-    color: var(--warning);
-    font-weight: 600;
-  }
-
-  /* Tags */
-  .tags-section {
-    margin: 16px 0;
-  }
-
-  .section-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 12px;
-  }
-
-  .tags-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .tag {
-    padding: 6px 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    font-size: 13px;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-  }
-
-  .tag:hover {
-    background: var(--primary-light);
-    border-color: var(--primary);
-    color: var(--primary-dark);
-  }
-
-  .tag-empty {
-    border-style: dashed;
-    background: transparent;
-    color: var(--text-muted);
-  }
-
-  /* Description */
-  .description-section {
-    margin: 20px 0;
-  }
-
-  .description-content {
-    color: var(--text-secondary);
-    line-height: 1.6;
-    padding: 16px;
-    background: var(--surface-alt);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-light);
-  }
-
-  .description-placeholder {
-    color: var(--text-muted);
-    font-style: italic;
-  }
-
-  /* Order Form */
-  .order-section {
-    background: var(--surface-alt);
-    border-radius: var(--radius-xl);
-    padding: 24px;
-    border: 1px solid var(--border-light);
-    margin-top: 8px;
-  }
-
-  .order-alert {
-    padding: 16px;
-    background: var(--primary-light);
-    border: 1px solid var(--primary);
-    border-radius: var(--radius-lg);
-    color: var(--primary-dark);
-    margin-bottom: 20px;
-    font-size: 14px;
-  }
-
-  .order-alert strong {
-    font-weight: 600;
-  }
-
-  .order-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  @media (max-width: 640px) {
-    .form-row {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .form-label {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text-primary);
-  }
-
-  .form-input {
-    padding: 12px 16px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    font-size: 16px;
-    background: var(--surface);
-    color: var(--text-primary);
-    transition: all 0.2s ease;
-  }
-
-  .form-input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-  }
-
-  .form-input:disabled {
-    background: var(--surface-alt);
-    color: var(--text-muted);
-    cursor: not-allowed;
-  }
-
-  .form-hint {
-    font-size: 13px;
-    color: var(--text-muted);
-  }
-
-  .total-display {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    font-weight: 700;
-    font-size: 18px;
-  }
-
-  .total-amount {
-    color: var(--primary);
-    font-size: 20px;
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border-radius: var(--radius-lg);
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-    text-decoration: none;
-  }
-
-  .btn-secondary {
-    background: var(--surface);
-    color: var(--text-secondary);
-    border-color: var(--border);
-  }
-
-  .btn-secondary:hover {
-    background: var(--surface-alt);
-    border-color: var(--text-muted);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .btn-primary {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-    flex: 1;
-  }
-
-  .btn-primary:hover {
-    background: var(--primary-dark);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-  }
-
-  .btn-primary:disabled {
-    background: var(--text-muted);
-    border-color: var(--text-muted);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-
-  .order-note {
-    font-size: 13px;
-    color: var(--text-muted);
-    text-align: center;
-    margin-top: 16px;
-    line-height: 1.5;
-  }
-
-  .order-note strong {
-    color: var(--text-primary);
-  }
-</style>
-
-<div class="container" id="buy-data"
+<!-- Marketplace Detail Widget (standalone, no extends) -->
+<div class="mp-detail-widget" id="mp-detail-{{ item.id }}"
      data-price="{{ item.price|floatformat:'2' }}"
      data-max="{{ item.weight|floatformat:'2' }}"
-     data-available="{{ item.is_available|yesno:'true,false' }}">
+     data-available="{{ item.is_available|yesno:'true,false' }}"
+     data-title="{{ item.name|escape }}">
+  <style>
+    .mp-detail-widget { --primary:#2563eb; --primary-dark:#1d4ed8; --primary-light:#dbeafe;
+      --success:#10b981; --success-light:#d1fae5; --error:#ef4444; --error-light:#fee2e2;
+      --warning:#f59e0b; --warning-light:#fef3c7; --surface:#ffffff; --surface-alt:#f8fafc;
+      --border:#e2e8f0; --border-light:#f1f5f9; --text-primary:#0f172a; --text-secondary:#475569;
+      --text-muted:#64748b; --shadow-sm:0 1px 2px rgba(2,6,23,.05);
+      --shadow-md:0 4px 6px -1px rgba(2,6,23,.1),0 2px 4px -1px rgba(2,6,23,.06);
+      --shadow-lg:0 10px 15px -3px rgba(2,6,23,.1),0 4px 6px -2px rgba(2,6,23,.05);
+      --radius-lg:12px; --radius-xl:16px; --radius-2xl:20px; font-family:system-ui,-apple-system,sans-serif;
+      color:var(--text-primary); line-height:1.5; background:transparent;
+    }
+    .mp-detail-widget * { box-sizing:border-box; }
+    .mpd-container{max-width:1200px;margin:0 auto;padding:0}
+    .mpd-page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border-light)}
+    .mpd-back-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text-secondary);text-decoration:none;transition:.2s;box-shadow:var(--shadow-sm)}
+    .mpd-back-btn:hover{background:var(--surface-alt);border-color:var(--primary);color:var(--primary);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+    .mpd-item-id{font-size:13px;color:var(--text-muted);font-weight:500}
+    .mpd-card{background:var(--surface);border-radius:var(--radius-2xl);box-shadow:var(--shadow-lg);overflow:hidden}
+    .mpd-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px}
+    @media (max-width:968px){.mpd-grid{grid-template-columns:1fr;gap:16px}}
+    .mpd-image-wrap{position:relative}
+    .mpd-image-box{position:relative;border-radius:16px;overflow:hidden;background:var(--surface-alt);border:1px solid var(--border-light);aspect-ratio:4/3}
+    .mpd-img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+    .mpd-image-box:hover .mpd-img{transform:scale(1.02)}
+    .mpd-status{position:absolute;top:12px;right:12px;padding:6px 12px;border-radius:12px;font-weight:700;font-size:13px;backdrop-filter:blur(8px);background:rgba(255,255,255,.9);box-shadow:var(--shadow-md)}
+    .mpd-avail{background:var(--success-light);color:var(--success)}
+    .mpd-sold{background:var(--error-light);color:var(--error)}
+    .mpd-info{display:flex;flex-direction:column;gap:16px}
+    .mpd-title{font-size:24px;font-weight:800;margin:0}
+    .mpd-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+    .mpd-badge{padding:6px 10px;border-radius:12px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+    .mpd-badge-grade{background:var(--surface);border:1px solid var(--border)}
+    .mpd-badge-type{background:var(--primary-light);color:var(--primary-dark)}
+    .mpd-badge-loc{background:var(--surface-alt);border:1px solid var(--border);color:var(--text-secondary)}
+    .mpd-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .mpd-stat{padding:14px;border-radius:12px;background:var(--surface-alt);border:1px solid var(--border-light);transition:.2s}
+    .mpd-stat:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+    .mpd-stat-label{font-size:12px;color:var(--text-muted);margin-bottom:4px}
+    .mpd-stat-val{font-size:18px;font-weight:800}
+    .mpd-price{color:var(--primary)}
+    .mpd-seller{display:flex;align-items:center;gap:10px;padding:12px;background:var(--surface-alt);border-radius:12px;border:1px solid var(--border-light)}
+    .mpd-avatar{width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
+    .mpd-tags{margin-top:8px}
+    .mpd-sec-title{font-size:14px;font-weight:800;margin:0 0 8px}
+    .mpd-tag-list{display:flex;flex-wrap:wrap;gap:8px}
+    .mpd-tag{padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:12px;color:var(--text-secondary)}
+    .mpd-tag-empty{border-style:dashed;background:transparent;color:var(--text-muted)}
+    .mpd-desc{color:var(--text-secondary);line-height:1.6;padding:12px;background:var(--surface-alt);border-radius:12px;border:1px solid var(--border-light)}
+    .mpd-desc-empty{color:var(--text-muted);font-style:italic}
+    .mpd-order{background:var(--surface-alt);border-radius:16px;padding:16px;border:1px solid var(--border-light)}
+    .mpd-alert{padding:12px;background:var(--primary-light);border:1px solid var(--primary);border-radius:12px;color:var(--primary-dark);font-size:13px;margin-bottom:12px}
+    .mpd-form{display:flex;flex-direction:column;gap:12px}
+    .mpd-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:640px){.mpd-row{grid-template-columns:1fr}}
+    .mpd-field{display:flex;flex-direction:column;gap:6px}
+    .mpd-label{font-weight:800;font-size:13px}
+    .mpd-input{padding:10px 12px;border:1px solid var(--border);border-radius:12px;font-size:15px;background:var(--surface);transition:.2s}
+    .mpd-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+    .mpd-input:disabled{background:var(--surface-alt);color:var(--text-muted);cursor:not-allowed}
+    .mpd-hint{font-size:12px;color:var(--text-muted)}
+    .mpd-total{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-weight:800}
+    .mpd-total-amt{color:var(--primary);font-size:18px}
+    .mpd-actions{display:flex;gap:10px;margin-top:6px}
+    .mpd-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;font-weight:800;font-size:13px;cursor:pointer;transition:.2s;border:1px solid transparent;text-decoration:none}
+    .mpd-btn-secondary{background:var(--surface);color:var(--text-secondary);border-color:var(--border)}
+    .mpd-btn-secondary:hover{background:var(--surface-alt);border-color:var(--text-muted);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+    .mpd-btn-primary{background:var(--primary);color:#fff;border-color:var(--primary);flex:1}
+    .mpd-btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+    .mpd-btn-primary:disabled{background:var(--text-muted);border-color:var(--text-muted);cursor:not-allowed;transform:none;box-shadow:none}
+    .mpd-note{font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px}
+  </style>
 
-  <!-- Page Header -->
-  <div class="page-header">
-    <button class="back-btn" onclick="history.back()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      Back to Marketplace
-    </button>
-    <div class="item-id">Item #{{ item.id }}</div>
-  </div>
+  <div class="mpd-container">
+    <!-- Header (optional back) -->
+    <div class="mpd-page-header">
+      <button type="button" class="mpd-back-btn" data-mp-action="back">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back
+      </button>
+      <div class="mpd-item-id">Item #{{ item.id }}</div>
+    </div>
 
-  <!-- Main Product Card -->
-  <div class="product-card">
-    <div class="product-layout">
-      <!-- Image Section -->
-      <div class="image-section">
-        <div class="image-container">
-          {% if item.product_image %}
-            <img src="{{ item.product_image.url }}" alt="{{ item.name }}" class="product-image">
-          {% else %}
-            <img src="{% static 'img/placeholder-1280x720.jpg' %}" alt="No image available" class="product-image">
-          {% endif %}
-          
-          <!-- Status Badge -->
-          <div class="status-badge {% if item.is_available %}status-available{% else %}status-sold{% endif %}">
-            {% if item.is_available %}
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13 4L6 12L3 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              Available
+    <!-- Card -->
+    <div class="mpd-card">
+      <div class="mpd-grid">
+        <!-- Image -->
+        <div class="mpd-image-wrap">
+          <div class="mpd-image-box">
+            {% if item.product_image %}
+              <img src="{{ item.product_image.url }}" alt="{{ item.name }}" class="mpd-img">
             {% else %}
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 4L12 12M4 12L12 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              Sold Out
+              <img src="{% static 'img/placeholder-1280x720.jpg' %}" alt="No image available" class="mpd-img">
             {% endif %}
-          </div>
-        </div>
-      </div>
-
-      <!-- Info Section -->
-      <div class="info-section">
-        <!-- Title and Badges -->
-        <div>
-          <h1 class="product-title">{{ item.name }}</h1>
-          <div class="badges-container">
-            <span class="badge badge-grade">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 1L9.163 4.607L13 5.351L10.5 8.3L11.326 12L7 10.107L2.674 12L3.5 8.3L1 5.351L4.837 4.607L7 1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              Grade {{ item.grade }}
-            </span>
-            <span class="badge badge-type">{{ item.get_product_type_display }}</span>
-            <span class="badge badge-location">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 8C8.10457 8 9 7.10457 9 6C9 4.89543 8.10457 4 7 4C5.89543 4 5 4.89543 5 6C5 7.10457 5.89543 8 7 8Z" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M11 6C11 9.5 7 12 7 12C7 12 3 9.5 3 6C3 3.5 5 2 7 2C9 2 11 3.5 11 6Z" stroke="currentColor" stroke-width="1.5"/>
-              </svg>
-              {{ item.location }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Available Weight</div>
-            <div class="stat-value">{{ item.weight }} kg</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Price per kg</div>
-            <div class="stat-value stat-price">৳ {{ item.price }}</div>
-          </div>
-        </div>
-
-        <!-- Seller Info -->
-        <div class="seller-info">
-          <div class="seller-avatar">
-            {{ item.seller_display_name|default:item.seller_name|first|upper }}
-          </div>
-          <div class="seller-details">
-            <div class="seller-name">{{ item.seller_display_name|default:item.seller_name }}</div>
-            <div class="seller-rating">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 1L9.163 4.607L13 5.351L10.5 8.3L11.326 12L7 10.107L2.674 12L3.5 8.3L1 5.351L4.837 4.607L7 1Z"/>
-              </svg>
-              {{ item.seller_avg|default:item.seller_average_rating }}
+            <div class="mpd-status {% if item.is_available %}mpd-avail{% else %}mpd-sold{% endif %}">
+              {% if item.is_available %}Available{% else %}Sold Out{% endif %}
             </div>
           </div>
         </div>
 
-        <!-- Tags -->
-        <div class="tags-section">
-          <h3 class="section-title">Product Tags</h3>
-          <div class="tags-container">
-            {% for t in item.tags.all %}
-              <span class="tag">{{ t.get_name_display }}</span>
-            {% empty %}
-              <span class="tag tag-empty">No tags added</span>
-            {% endfor %}
-          </div>
-        </div>
-
-        <!-- Description -->
-        <div class="description-section">
-          <h3 class="section-title">Description</h3>
-          <div class="description-content">
-            {% if item.description %}
-              {{ item.description }}
-            {% else %}
-              <span class="description-placeholder">No description provided for this product.</span>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- Order Section -->
-        <div class="order-section">
-          <div class="order-alert">
-            <strong>Important:</strong> Orders cannot be cancelled after confirmation. Please review your order carefully before proceeding.
+        <!-- Info -->
+        <div class="mpd-info">
+          <div>
+            <h1 class="mpd-title">{{ item.name }}</h1>
+            <div class="mpd-badges">
+              <span class="mpd-badge mpd-badge-grade">Grade {{ item.grade }}</span>
+              <span class="mpd-badge mpd-badge-type">{{ item.get_product_type_display }}</span>
+              <span class="mpd-badge mpd-badge-loc">
+                {{ item.location|default:"Location not set" }}
+              </span>
+            </div>
           </div>
 
-          <form class="order-form" id="buyForm" method="post" action="{% url 'marketplace:buy' item.id %}">
-            {% csrf_token %}
-            <div class="form-row">
-              <div class="form-field">
-                <label for="weight" class="form-label">Weight to Purchase (kg)</label>
-                <input
-                  id="weight"
-                  name="weight"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  max="{{ item.weight|floatformat:'2' }}"
-                  placeholder="0.00"
-                  class="form-input"
-                  {% if not item.is_available %}disabled{% endif %}
-                  required
-                />
-                <div class="form-hint">Maximum available: {{ item.weight }} kg</div>
+          <div class="mpd-stats">
+            <div class="mpd-stat">
+              <div class="mpd-stat-label">Available Weight</div>
+              <div class="mpd-stat-val">{{ item.weight }} kg</div>
+            </div>
+            <div class="mpd-stat">
+              <div class="mpd-stat-label">Price per kg</div>
+              <div class="mpd-stat-val mpd-price">৳ {{ item.price }}</div>
+            </div>
+          </div>
+
+          <div class="mpd-seller">
+            <div class="mpd-avatar">
+              {# avatar initial safely #}
+              {% with nm=item.seller_display_name|default:item.seller_name %}
+                {{ nm|default:"?"|slice:":1"|upper }}
+              {% endwith %}
+            </div>
+            <div>
+              <div style="font-weight:800">
+                {{ item.seller_display_name|default:item.seller_name }}
               </div>
+              <div title="Seller rating" style="font-size:13px;color:#f59e0b;font-weight:800">
+                {{ item.seller_avg|default:item.seller_average_rating }}
+              </div>
+            </div>
+          </div>
 
-              <div class="form-field">
-                <label class="form-label">Total Amount</label>
-                <div class="total-display">
-                  <span>Total:</span>
-                  <span class="total-amount">৳ <span id="total">0.00</span></span>
+          <div class="mpd-tags">
+            <p class="mpd-sec-title">Product Tags</p>
+            <div class="mpd-tag-list">
+              {% for t in item.tags.all %}
+                <span class="mpd-tag">{{ t.get_name_display }}</span>
+              {% empty %}
+                <span class="mpd-tag mpd-tag-empty">No tags added</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div>
+            <p class="mpd-sec-title">Description</p>
+            <div class="mpd-desc">
+              {% if item.description %}
+                {{ item.description }}
+              {% else %}
+                <span class="mpd-desc-empty">No description provided for this product.</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mpd-order">
+            <div class="mpd-alert"><strong>Important:</strong> Orders cannot be cancelled after confirmation.</div>
+
+            <form class="mpd-form" method="post" action="{% url 'marketplace:buy' item.id %}">
+              {% csrf_token %}
+              <div class="mpd-row">
+                <div class="mpd-field">
+                  <label for="mpd-weight-{{ item.id }}" class="mpd-label">Weight to Purchase (kg)</label>
+                  <input
+                    id="mpd-weight-{{ item.id }}"
+                    name="weight"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max="{{ item.weight|floatformat:'2' }}"
+                    placeholder="0.00"
+                    class="mpd-input"
+                    {% if not item.is_available %}disabled{% endif %}
+                    required
+                  />
+                  <div class="mpd-hint">Maximum available: {{ item.weight }} kg</div>
                 </div>
-                <div class="form-hint">Calculated at ৳ {{ item.price }} per kg</div>
+
+                <div class="mpd-field">
+                  <label class="mpd-label">Total Amount</label>
+                  <div class="mpd-total">
+                    <span>Total:</span>
+                    <span class="mpd-total-amt">৳ <span data-mp-total>0.00</span></span>
+                  </div>
+                  <div class="mpd-hint">Calculated at ৳ {{ item.price }} per kg</div>
+                </div>
               </div>
-            </div>
 
-            <div class="form-actions">
-              <button type="button" class="btn btn-secondary" onclick="history.back()">Cancel</button>
-              <button type="submit" class="btn btn-primary" id="orderBtn" {% if not item.is_available %}disabled{% endif %}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 1H1V3H3V1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M5 3H13M5 3L3 1H1V3M5 3V12C5 12.5523 5.44772 13 6 13H12C12.5523 13 13 12.5523 13 12V3M1 3V12C1 12.5523 1.44772 13 2 13H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                Place Order (Cash on Delivery)
-              </button>
-            </div>
-          </form>
+              <div class="mpd-actions">
+                <button type="button" class="mpd-btn mpd-btn-secondary" data-mp-action="back">Cancel</button>
+                <button type="submit" class="mpd-btn mpd-btn-primary" data-mp-order-btn
+                        {% if not item.is_available %}disabled{% endif %}>
+                  Place Order (Cash on Delivery)
+                </button>
+              </div>
+            </form>
 
-          <p class="order-note">
-            After placing your order, payment will be collected upon delivery. 
-            Please contact the Collector through the <strong>Community</strong> section for any inquiries.
-          </p>
+            <p class="mpd-note">
+              After placing your order, payment will be collected upon delivery.
+              Contact the Collector via <strong>Community</strong> for questions.
+            </p>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
-(() => {
-  const root = document.getElementById('buy-data');
-  if (!root) return;
+  <script>
+    (function(){
+      const root = document.getElementById('mp-detail-{{ item.id }}');
+      if(!root) return;
 
-  // Read values from data-* attributes
-  const pricePerKg = parseFloat(root.dataset.price || '0') || 0;
-  const maxAvail = parseFloat(root.dataset.max || '0') || 0;
-  const isAvailable = (root.dataset.available || 'false') === 'true';
+      const pricePerKg = parseFloat(root.dataset.price || '0') || 0;
+      const maxAvail   = parseFloat(root.dataset.max || '0') || 0;
+      const isAvail    = (root.dataset.available || 'false') === 'true';
+      const title      = root.dataset.title || 'Product';
 
-  const weightEl = document.getElementById('weight');
-  const totalEl = document.getElementById('total');
-  const form = document.getElementById('buyForm');
-  const orderBtn = document.getElementById('orderBtn');
+      const weightEl = root.querySelector('#mpd-weight-{{ item.id }}');
+      const totalEl  = root.querySelector('[data-mp-total]');
+      const orderBtn = root.querySelector('[data-mp-order-btn]');
 
-  function clamp(n, min, max) { 
-    return Math.min(Math.max(n, min), max); 
-  }
+      const backButtons = root.querySelectorAll('[data-mp-action="back"]');
+      backButtons.forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          if (window.history && window.history.length > 1) { history.back(); }
+          else { window.dispatchEvent(new CustomEvent('mp:close', { detail: { id: '{{ item.id }}' } })); }
+        });
+      });
 
-  function recalcTotal() {
-    let w = parseFloat(weightEl.value || '0');
-    if (isNaN(w)) w = 0;
-    
-    // Keep 2 decimal places and clamp to available amount
-    w = Math.round(w * 100) / 100;
-    if (maxAvail > 0) w = clamp(w, 0, maxAvail);
-    
-    const total = w * pricePerKg;
-    totalEl.textContent = (isNaN(total) ? 0 : total).toFixed(2);
-    
-    // Update input value if it was clamped
-    if (w !== parseFloat(weightEl.value || '0')) {
-      weightEl.value = w.toFixed(2);
-    }
-  }
-
-  // Initialize event listeners
-  if (weightEl) {
-    weightEl.addEventListener('input', recalcTotal);
-    weightEl.addEventListener('change', recalcTotal);
-    
-    // Set initial value to minimum
-    weightEl.value = '0.01';
-    recalcTotal();
-  }
-
-  // Form submission handler
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      const w = parseFloat(weightEl.value || '0') || 0;
-      const t = parseFloat(totalEl.textContent || '0') || 0;
-      
-      const msg = 
-        `You are about to place an order for:\n\n` +
-        `• Product: ${document.querySelector('.product-title').textContent}\n` +
-        `• Weight: ${w.toFixed(2)} kg\n` +
-        `• Total: ৳ ${t.toFixed(2)}\n\n` +
-        `Payment: Cash on Delivery\n\n` +
-        `This action cannot be undone. Proceed?`;
-      
-      if (!confirm(msg)) {
-        e.preventDefault();
+      function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
+      function recalc(){
+        if(!weightEl || !totalEl) return;
+        let w = parseFloat(weightEl.value || '0');
+        if (isNaN(w)) w = 0;
+        w = Math.round(w * 100) / 100;
+        if (maxAvail > 0) w = clamp(w, 0, maxAvail);
+        const total = w * pricePerKg;
+        totalEl.textContent = (isNaN(total) ? 0 : total).toFixed(2);
+        if (w !== parseFloat(weightEl.value || '0')) weightEl.value = w.toFixed(2);
       }
-    });
-  }
 
-  // Disable order button if item is not available
-  if (!isAvailable && orderBtn) {
-    orderBtn.disabled = true;
-    orderBtn.textContent = 'Item Not Available';
-  }
-})();
-</script>
-{% endblock %}
+      if (weightEl){
+        weightEl.addEventListener('input', recalc);
+        weightEl.addEventListener('change', recalc);
+        weightEl.value = maxAvail > 0 ? '0.01' : '0.00';
+        recalc();
+      }
+
+      const form = root.querySelector('form.mpd-form');
+      if (form){
+        form.addEventListener('submit', (e)=>{
+          const w = parseFloat(weightEl && weightEl.value || '0') || 0;
+          const t = parseFloat(totalEl && totalEl.textContent || '0') || 0;
+          const msg = 
+            `You are about to place an order for:\n\n` +
+            `• Product: ${title}\n` +
+            `• Weight: ${w.toFixed(2)} kg\n` +
+            `• Total: ৳ ${t.toFixed(2)}\n\n` +
+            `Payment: Cash on Delivery\n\n` +
+            `This action cannot be undone. Proceed?`;
+          if (!confirm(msg)) e.preventDefault();
+        });
+      }
+
+      if (!isAvail && orderBtn){
+        orderBtn.disabled = true;
+        orderBtn.textContent = 'Item Not Available';
+      }
+    })();
+  </script>
+</div>
