@@ -1,0 +1,825 @@
+{% extends "Admin/admin_base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  /* --- Design System --- */
+  :root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --secondary: #64748b;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --surface: #ffffff;
+    --surface-alt: #f8fafc;
+    --border: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+  }
+
+  /* --- Utilities --- */
+  .mp-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+  
+  .mp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  .mp-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    position: relative;
+  }
+  
+  .mp-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 2px;
+  }
+  
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+  
+  .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .btn-primary:hover {
+    background: var(--primary-dark);
+  }
+  
+  .btn-secondary {
+    background: var(--surface-alt);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+  
+  .btn-outline {
+    background: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+  }
+  
+  .btn-outline:hover {
+    background: rgba(37, 99, 235, 0.05);
+  }
+  
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .badge-primary {
+    background: #ffffff;
+    color: var(--text-primary);
+  }
+  
+  .badge-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+  }
+  
+  .badge-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+  }
+  
+  .badge-error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+  }
+  
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--radius-lg);
+    background: var(--surface-alt);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .chip-primary {
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--primary);
+  }
+  
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-lg);
+    background: var(--surface-alt);
+    color: var(--text-secondary);
+    font-size: 12px;
+    border: 1px solid var(--border);
+    margin-right: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+  }
+  
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .card-imgwrap {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+  }
+  
+  .card-imgwrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .card:hover .card-imgwrap img {
+    transform: scale(1.05);
+  }
+  
+  .card-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1;
+  }
+  
+  .card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.4;
+  }
+  
+  .card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+  
+  .card-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .card-description {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .card-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0;
+  }
+  
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .seller-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .price {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text-primary);
+  }
+  
+  .rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--warning);
+    font-weight: 600;
+    font-size: 14px;
+  }
+  
+  .card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  
+  .soldout {
+    position: relative;
+  }
+  
+  .soldout::after {
+    content: 'SOLD OUT';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 18px;
+    z-index: 2;
+  }
+  
+  .soldout .card-imgwrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+  }
+  
+  /* --- Search & Filters --- */
+  .filters-container {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+  }
+  
+  .filters-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    align-items: end;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  
+  .form-input, .form-select {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    background: var(--surface);
+    color: var(--text-primary);
+    transition: border-color 0.2s ease;
+  }
+  
+  .form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  /* Grade input specific styling - White background with black text */
+  input[name="grade"] {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  input[name="grade"]::placeholder {
+    color: #6b7280 !important;
+  }
+  
+  /* --- Modal --- */
+  dialog {
+    border: none;
+    border-radius: var(--radius-xl);
+    max-width: 800px;
+    width: 96%;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    max-height: 90vh;
+  }
+  
+  dialog::backdrop {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+  }
+  
+  .modal-head {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    background: var(--surface);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .modal-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal-close:hover {
+    background: var(--surface-alt);
+    color: var(--text-primary);
+  }
+  
+  .modal-body {
+    padding: 24px;
+    background: var(--surface);
+    overflow: auto;
+    max-height: calc(90vh - 140px);
+  }
+  
+  .modal-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 24px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+  
+  .form-grid-full {
+    grid-column: 1 / -1;
+  }
+  
+  .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  
+  .checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+  }
+  
+  /* --- Empty State --- */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    grid-column: 1 / -1;
+  }
+  
+  .empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    color: var(--border);
+  }
+  
+  .empty-state-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+  
+  .empty-state-description {
+    color: var(--text-secondary);
+    max-width: 400px;
+    margin: 0 auto 24px;
+  }
+  
+  /* --- Responsive --- */
+  @media (max-width: 768px) {
+    .mp-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .filters-form {
+      grid-template-columns: 1fr;
+    }
+    
+    .card-footer {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .seller-info {
+      width: 100%;
+      justify-content: space-between;
+    }
+    
+    .card-actions {
+      width: 100%;
+    }
+    
+    .card-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+    
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="mp-container">
+
+  <div class="mp-header">
+    <h1 class="mp-title">Collector Marketplace</h1>
+    {% if can_add %}
+      <button class="btn btn-primary" onclick="document.getElementById('addModal').showModal()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 1V15M1 8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Add Product
+      </button>
+    {% endif %}
+  </div>
+
+  <!-- Search & Filters -->
+  <div class="filters-container">
+    <form method="get" class="filters-form">
+      <div class="form-group">
+        <label class="form-label">Search</label>
+        <input type="text" name="q" class="form-input" placeholder="Product name, location, description..." value="{{ query }}">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Product Type</label>
+        <select name="type" class="form-select">
+          <option value="">All Types</option>
+          {% for val,label in product_types %}
+            <option value="{{ val }}" {% if ptype == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Minimum Rating</label>
+        <select name="min_rating" class="form-select">
+          <option value="">Any Rating</option>
+          <option value="4" {% if min_rating == "4" %}selected{% endif %}>4+ Stars</option>
+          <option value="3" {% if min_rating == "3" %}selected{% endif %}>3+ Stars</option>
+          <option value="2" {% if min_rating == "2" %}selected{% endif %}>2+ Stars</option>
+          <option value="1" {% if min_rating == "1" %}selected{% endif %}>1+ Star</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Sort By</label>
+        <select name="order" class="form-select">
+          <option value="">Newest First</option>
+          <option value="price_asc" {% if order == "price_asc" %}selected{% endif %}>Price: Low to High</option>
+          <option value="price_desc" {% if order == "price_desc" %}selected{% endif %}>Price: High to Low</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <button class="btn btn-secondary" type="submit">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 14L10.5355 10.5355M10.5355 10.5355C11.473 9.59802 12 8.32608 12 7C12 4.79086 10.2091 3 8 3C5.79086 3 4 4.79086 4 7C4 9.20914 5.79086 11 8 11C9.32608 11 10.598 10.473 10.5355 10.5355Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Apply Filters
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="grid">
+    {% for item in items %}
+      <div class="card {% if not item.is_available %}soldout{% endif %}">
+        <div class="card-imgwrap">
+          {% if item.product_image %}
+            <img src="{{ item.product_image.url }}" alt="{{ item.name }}">
+          {% else %}
+            <img src="{% static 'img/placeholder-640x480.jpg' %}" alt="No image available">
+          {% endif %}
+          
+          <div class="card-badge">
+            <span class="badge badge-primary">Grade {{ item.grade }}</span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
+            <h3 class="card-title">{{ item.name }}</h3>
+            {% if item.is_available %}
+              <span class="badge badge-success">Available</span>
+            {% else %}
+              <span class="badge badge-error">Sold Out</span>
+            {% endif %}
+          </div>
+
+          <div class="card-meta">
+            <div class="card-meta-item">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 1V3M8 13V15M3 8H1M15 8H13M3.75736 3.75736L2.34315 2.34315M13.6569 2.34315L12.2426 3.75736M12.2426 12.2426L13.6569 13.6569M3.75736 12.2426L2.34315 13.6569" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              {{ item.location }}
+            </div>
+            <div class="card-meta-item">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 5.2L8 8L14 5.2M2 5.2L8 2L14 5.2M2 5.2V10.8L8 14L14 10.8V5.2" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
+              {{ item.get_product_type_display }}
+            </div>
+            <div class="card-meta-item">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 4H15M1 4V13C1 13.5523 1.44772 14 2 14H14C14.5523 14 15 13.5523 15 13V4M1 4L2 2H14L15 4M11 7C11 8.65685 9.65685 10 8 10C6.34315 10 5 8.65685 5 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              {{ item.weight }} KG
+            </div>
+          </div>
+
+          {% if item.description %}
+            <p class="card-description">{{ item.description|truncatechars:140 }}</p>
+          {% endif %}
+
+          <!-- Tags -->
+          <div class="card-tags">
+            {% for t in item.tags.all %}
+              <span class="tag">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9.5 4.5L4.5 9.5M4.5 4.5L9.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                {{ t.get_name_display }}
+              </span>
+            {% empty %}
+              <span class="tag" style="background: transparent; border: 1px dashed var(--border);">No tags</span>
+            {% endfor %}
+          </div>
+
+          <div class="card-divider"></div>
+
+          <div class="card-footer">
+            <div class="seller-info">
+              <span class="chip chip-primary">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11.6667 12.25V11.0833C11.6667 10.423 11.4033 9.78906 10.9345 9.32021C10.4656 8.85137 9.83171 8.588 9.17139 8.588H4.82861C4.16829 8.588 3.53437 8.85137 3.06553 9.32021C2.59668 9.78906 2.33331 10.423 2.33331 11.0833V12.25M9.17139 4.088C9.17139 5.08593 8.37264 5.89417 7.37472 5.89417C6.37679 5.89417 5.56856 5.08593 5.56856 4.088C5.56856 3.09008 6.37679 2.2915 7.37472 2.2915C8.37264 2.2915 9.17139 3.09008 9.17139 4.088Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                {{ item.seller_display_name|default:item.seller_name }}
+              </span>
+              <span class="chip">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 1L9.163 4.607L13 5.351L10.5 8.3L11.326 12L7 10.107L2.674 12L3.5 8.3L1 5.351L4.837 4.607L7 1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="rating">{{ item.seller_avg|default:item.seller_average_rating }}</span>
+              </span>
+            </div>
+            
+            <div class="price">৳ {{ item.price }} / KG</div>
+          </div>
+
+          <div class="card-actions">
+            <a class="btn btn-outline" href="{% url 'marketplace:detail' item.id %}">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 12C10.2091 12 12 10.2091 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8C4 10.2091 5.79086 12 8 12Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M8 9C8.55228 9 9 8.55228 9 8C9 7.44772 8.55228 7 8 7C7.44772 7 7 7.44772 7 8C7 8.55228 7.44772 9 8 9Z" fill="currentColor"/>
+                <path d="M1 8H3M13 8H15M8 1V3M8 13V15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              View Details
+            </a>
+            <a class="btn btn-primary" href="{% url 'marketplace:detail' item.id %}">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 1H1V3H3V1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 3H13M5 3L3 1H1V3M5 3V12C5 12.5523 5.44772 13 6 13H12C12.5523 13 13 12.5523 13 12V3M1 3V12C1 12.5523 1.44772 13 2 13H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              Buy Now
+            </a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state">
+        <div class="empty-state-icon">📦</div>
+        <h3 class="empty-state-title">No products found</h3>
+        <p class="empty-state-description">Try adjusting your search filters or add a new product to the marketplace.</p>
+        {% if can_add %}
+          <button class="btn btn-primary" onclick="document.getElementById('addModal').showModal()">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 1V15M1 8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Add Your First Product
+          </button>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% if can_add %}
+  <!-- Add Product Modal -->
+  <dialog id="addModal" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <h2 class="modal-title" id="modal-title">Add New Product</h2>
+      <button class="modal-close" type="button" onclick="document.getElementById('addModal').close()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form id="addForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Product Name</label>
+            <input type="text" name="name" class="form-input" placeholder="Enter product name" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Product Type</label>
+            <select name="product_type" class="form-select" required>
+              <option value="" disabled selected>Select type</option>
+              {% for val,label in product_types %}
+                <option value="{{ val }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Grade</label>
+            <input type="number" name="grade" class="form-input" placeholder="1-10" min="1" max="10" required style="background: #ffffff !important; color: #000000 !important;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Availability</label>
+            <select name="is_available" class="form-select">
+              <option value="on" selected>Available</option>
+              <option value="">Not Available</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input type="text" name="location" class="form-input" placeholder="City, Country" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Weight (kg)</label>
+            <input type="number" step="0.01" name="weight" class="form-input" placeholder="0.00" min="0.01" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Price per kg (BDT)</label>
+            <input type="number" step="0.01" name="price" class="form-input" placeholder="0.00" min="0.01" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Product Image</label>
+            <input type="file" name="product_image" class="form-input" accept="image/*">
+          </div>
+
+          <div class="form-group form-grid-full">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-input" rows="4" placeholder="Provide a detailed description of your product..."></textarea>
+          </div>
+
+          <div class="form-group form-grid-full">
+            <label class="form-label">Product Tags</label>
+            <div class="checkbox-group">
+              {% for val,label in tag_choices %}
+                <label class="checkbox-item">
+                  <input type="checkbox" name="tags" value="{{ val }}">
+                  <span>{{ label }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" onclick="document.getElementById('addModal').close()">Cancel</button>
+      <button type="submit" form="addForm" class="btn btn-primary">Add Product</button>
+    </div>
+  </dialog>
+{% endif %}
+
+{% endblock %}
