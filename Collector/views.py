@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import models
 import json
 from User.models import User, CollectorRating
+from Marketplace.models import Marketplace, MarketTag
 
 from Education.views import (
     education_awareness_c,
@@ -52,9 +53,10 @@ def community(request):
     }
     return render(request, "Collector/c_community.html", context)
 
+#Marketplace
 @login_required(login_url="user:login")
 def marketplace(request):
-    return render(request, "Collector/c_marketplace.html")
+    return render(request, "Collector/c_marketplace.html", context)
 
 @login_required(login_url="user:login")
 def rewards(request):

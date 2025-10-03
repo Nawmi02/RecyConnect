@@ -1,10 +1,14 @@
 from django.urls import path
 from . import views
 
+app_name = "marketplace"
+
 urlpatterns = [
-    path('', views.marketplace_list, name='marketplace_list'),
-    path('create/', views.marketplace_create, name='marketplace_create'),
-    path('update/<int:id>/', views.marketplace_update, name='marketplace_update'),
-    path('delete/<int:id>/', views.marketplace_delete, name='marketplace_delete'),
-    path('detail/<int:id>/', views.marketplace_detail, name='marketplace_detail'),
+    path("collector/",  views.marketplace_page, {"role": "collector"},  name="collector"),
+    path("buyer/",      views.marketplace_page, {"role": "buyer"},      name="buyer"),
+    path("household/",  views.marketplace_page, {"role": "household"},  name="household"),
+    path("admin/",      views.marketplace_page, {"role": "admin"},      name="admin"),
+
+    path("item/<int:pk>/", views.marketplace_detail, name="detail"),
+    path("item/<int:pk>/buy/", views.marketplace_buy, name="buy"),
 ]

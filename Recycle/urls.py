@@ -27,4 +27,5 @@ urlpatterns = [
     path("collector/", include(("Collector.urls", "collector"), namespace="collector")),
     path("buyer/", include(("Buyer.urls", "buyer"), namespace="buyer")),
     path("education/", include(("Education.urls", "education"), namespace="education")),
+    path("marketplace/", include(("Marketplace.urls", "marketplace"), namespace="marketplace")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
