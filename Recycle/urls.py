@@ -28,4 +28,5 @@ urlpatterns = [
     path("buyer/", include(("Buyer.urls", "buyer"), namespace="buyer")),
     path("education/", include(("Education.urls", "education"), namespace="education")),
     path("marketplace/", include(("Marketplace.urls", "marketplace"), namespace="marketplace")),
+    path("rewards/", include(("Rewards.urls", "rewards"), namespace="rewards")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

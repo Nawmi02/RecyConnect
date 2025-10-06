@@ -117,7 +117,7 @@
           <span>Learn</span>
         </a>
 
-        <a href="{% url 'adminpanel:rewards' %}"
+        <a href="{% url 'rewards:admin' %}"
            class="{% if url_name == 'rewards' %}active{% endif %}">
           <img src="{% static 'trophy.png' %}" alt="Rewards">
           <span>Rewards</span>
@@ -180,7 +180,7 @@
       <div class="foot-col">
         <h4>Quick Links</h4>
         <a href="{% url 'adminpanel:notifications' %}">Notification</a>
-        <a href="{% url 'adminpanel:marketplace' %}">Marketplace</a>
+        <a href="{% url 'marketplace:admin' %}">Marketplace</a>
         <a href="{% url 'adminpanel:learn' %}">Learn</a>
         <a href="{% url 'adminpanel:community' %}">Community</a>
       </div>

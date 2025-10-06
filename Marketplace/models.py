@@ -1,6 +1,9 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from decimal import Decimal
+from django.utils.crypto import get_random_string
+
 
 class MarketTag(models.Model):
     class Choices(models.TextChoices):
@@ -42,12 +45,11 @@ class MarketplaceQuerySet(models.QuerySet):
 
 
 class Marketplace(models.Model):
-
     class ProductType(models.TextChoices):
         METAL   = "metal",   "Metal"
         PLASTIC = "plastic", "Plastic"
         PAPER   = "paper",   "Paper"
-        E_WASTE = "ewaste",  "E-waste"
+        E_WASTE = "ewaste",  "E-waste"   # <- keep consistent with forms/views
         GLASS   = "glass",   "Glass"
 
     # Seller: must be approved Collector / Buyer / Recycler
@@ -55,7 +57,7 @@ class Marketplace(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="market_listings",
-        null=True, blank=True,   
+        null=True, blank=True,
         limit_choices_to={
             "role__in": ["collector", "buyer", "recycler"],
             "is_approved": True,
@@ -71,8 +73,8 @@ class Marketplace(models.Model):
     description = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=200)
     weight = models.DecimalField(max_digits=8, decimal_places=2)  # available stock (kg)
-    price = models.DecimalField(max_digits=10, decimal_places=2)  # price per kg (BDT)
-    tags = models.ManyToManyField(MarketTag, blank=True, related_name="items")
+    price  = models.DecimalField(max_digits=10, decimal_places=2) # price per kg (BDT)
+    tags   = models.ManyToManyField(MarketTag, blank=True, related_name="items")
     product_image = models.ImageField(
         upload_to="marketplace/products/",
         blank=True,
@@ -86,9 +88,9 @@ class Marketplace(models.Model):
         ordering = ("-id",)
 
     def __str__(self) -> str:
-        return self.name
+        return f"{self.name} — {self.get_product_type_display()}"
 
-    # Validation: ensure seller has the right role/approval
+    # ✅ Validation & seller helpers belong to Marketplace (not MarketOrder)
     def clean(self):
         super().clean()
         if self.seller:
@@ -99,13 +101,58 @@ class Marketplace(models.Model):
 
     @property
     def seller_name(self) -> str:
-        """Display name with fallback to email if empty."""
         return (self.seller.name or "").strip() or self.seller.email
 
     @property
     def seller_role(self) -> str:
-        return self.seller.role
+        return self.seller.role if self.seller_id else ""
 
     @property
     def seller_average_rating(self) -> float:
-        return float(self.seller.average_rating or 0.0)
+        return float(getattr(self.seller, "average_rating", 0.0) or 0.0)
+
+
+class MarketOrder(models.Model):
+    class Status(models.TextChoices):
+        PENDING   = "pending",   "Pending"
+        DELIVERED = "delivered", "Delivered"
+
+    order_no     = models.CharField(max_length=20, unique=True, db_index=True)
+    buyer        = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="market_orders"
+    )
+    collector    = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="collector_sales"
+    )
+    marketplace  = models.ForeignKey(
+        "Marketplace",
+        on_delete=models.PROTECT,
+        related_name="orders"
+    )
+
+    product_name = models.CharField(max_length=120)
+    weight_kg    = models.DecimalField(max_digits=8, decimal_places=3)
+    unit_price   = models.DecimalField(max_digits=10, decimal_places=2)
+    total_price  = models.DecimalField(max_digits=12, decimal_places=2)
+
+    status       = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    created_at   = models.DateTimeField(auto_now_add=True)
+    updated_at   = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-id",)
+        indexes = [
+            models.Index(fields=["buyer", "created_at"]),
+            models.Index(fields=["collector", "status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.order_no} ({self.product_name})"
+
+    @staticmethod
+    def new_order_no() -> str:
+        return f"ORD-{get_random_string(8).upper()}"

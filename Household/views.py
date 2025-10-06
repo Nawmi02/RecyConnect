@@ -7,8 +7,16 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import json
+from decimal import Decimal, InvalidOperation
+from django.db import transaction
+from django.db.models import Sum
+
 from django.db import models 
 from User.models import User, CollectorRating
+from django.contrib.auth import get_user_model
+from RecyCon.models import Product
+from Rewards.models import Activity
+from Pickup.models import PickupRequest
 
 from Education.views import (
     education_awareness_h,
@@ -18,9 +26,72 @@ from Education.views import (
     download_video,
 )
 
-@login_required(login_url="user:login") 
+User = get_user_model()
+
+def _stats(user):
+    total_weight = Activity.objects.filter(user=user).aggregate(s=Sum("weight_kg"))["s"] or Decimal("0")
+    return {
+        "points": user.points,
+        "total_pickups": user.total_pickups,
+        "total_weight_kg": Decimal(total_weight).quantize(Decimal("0.001")),
+        "total_co2_kg": user.total_co2_saved_kg,
+    }
+
+@login_required(login_url="user:login")
 def dashboard(request):
-    return render(request, "Household/h_dash.html")
+    user = request.user
+
+    if getattr(user, "role", None) != "household":
+        messages.error(request, "Household dashboard is only for household accounts.")
+        return redirect("/")
+
+    if request.method == "POST" and request.POST.get("action") == "request_pickup":
+        kind = (request.POST.get("kind") or "").strip()
+        wraw = request.POST.get("weight") or "0"
+        praw = request.POST.get("price") or "0"
+        try:
+            weight = Decimal(wraw); price = Decimal(praw)
+            if weight <= 0 or price < 0:
+                raise InvalidOperation
+        except Exception:
+            messages.error(request, "Please provide valid numbers for weight and price.")
+            return redirect(request.path)
+
+        with transaction.atomic():
+            product = Product.objects.create(kind=kind, weight=weight, price=price)
+
+            # approved collectors who collect this kind
+            collectors = User.objects.filter(
+                role="collector", is_approved=True, collector_product=kind
+            ).only("id")
+
+            created = 0
+            for c in collectors:
+                _, ok = PickupRequest.objects.get_or_create(
+                    requester=user,
+                    collector=c,
+                    product=product,
+                    defaults={"status": PickupRequest.Status.PENDING},
+                )
+                if ok:
+                    created += 1
+
+        if created:
+            messages.success(request, f"Pickup request sent to {created} matching collector(s).")
+        else:
+            messages.warning(request, "No approved collectors found for this product type.")
+        return redirect(request.path)
+
+    ctx = {
+        "stats": _stats(user),
+        "requests": (
+            PickupRequest.objects
+            .filter(requester=user)
+            .select_related("collector", "product")
+            .order_by("-created_at")[:10]
+        ),
+    }
+    return render(request, "Household/h_dash.html", ctx)  
 
 #Community
 @login_required(login_url="user:login")
@@ -94,15 +165,7 @@ def rate_collector(request, user_id):
         return JsonResponse({'success': False, 'error': 'Collector not found'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
-    
 
-@login_required(login_url="user:login")
-def marketplace(request):
-    return render(request, "Household/h_marketplace.html")
-
-@login_required(login_url="user:login")
-def rewards(request):
-    return render(request, "Household/h_rewards.html")
 
 @login_required(login_url="user:login")
 def notifications(request):

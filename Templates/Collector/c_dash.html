@@ -1,0 +1,685 @@
+{% extends "Collector/c_base.html" %}
+{% load static %}
+
+{% block title %}Collector Dashboard - RecyConnect{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --primary: #10b981;
+    --primary-600: #059669;
+    --primary-50: #ecfdf5;
+    --secondary: #3b82f6;
+    --secondary-600: #2563eb;
+    --muted: #6b7280;
+    --text: #111827;
+    --surface: #ffffff;
+    --bg: #f9fafb;
+    --border: #e5e7eb;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+  }
+
+  .card:hover {
+    box-shadow: var(--hover-shadow);
+  }
+
+  .welcome-card {
+    background: linear-gradient(135deg, var(--primary-50), #f0f9ff);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .welcome-card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+  }
+
+  .h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 12px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .muted {
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-size: 13px;
+    border: none;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--hover-shadow);
+  }
+
+  .btn.green {
+    background: var(--primary);
+  }
+
+  .btn.green:hover {
+    background: var(--primary-600);
+  }
+
+  .btn.red {
+    background: #ef4444;
+  }
+
+  .btn.red:hover {
+    background: #dc2626;
+  }
+
+  .btn.slate {
+    background: #475569;
+  }
+
+  .btn.slate:hover {
+    background: #334155;
+  }
+
+  .illustr {
+    background: linear-gradient(135deg, #f0f9ff, #ecfdf5);
+    border: 2px dashed #c7d2fe;
+    border-radius: 16px;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+    padding: 20px;
+  }
+
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--hover-shadow);
+  }
+
+  .kpi-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .kpi-label {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .tab-container {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border);
+    margin-top: 24px;
+  }
+
+  .tab-header {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: 16px 16px 0 0;
+    padding: 0 24px;
+  }
+
+  .tab-btn {
+    padding: 16px 24px;
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+  }
+
+  .tab-btn.active {
+    color: var(--primary);
+  }
+
+  .tab-btn.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 3px 3px 0 0;
+  }
+
+  .tab-content {
+    padding: 24px;
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .section-card {
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .count-badge {
+    background: var(--primary-50);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+  }
+
+  .table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--muted);
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table td {
+    background: #fff;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-left: none;
+    border-right: none;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+  }
+
+  .table tr {
+    transition: all 0.2s ease;
+  }
+
+  .table tr:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .badge-pending {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+  }
+
+  .badge-accepted {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #34d399;
+  }
+
+  .badge-completed {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #60a5fa;
+  }
+
+  .badge-delivered {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .stat-icon {
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  @media (max-width: 1024px) {
+    .hero {
+      grid-template-columns: 1fr;
+    }
+    
+    .kpis, .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .kpis, .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .wrap {
+      padding: 16px;
+    }
+    
+    .h1 {
+      font-size: 24px;
+    }
+    
+    .tab-header {
+      flex-direction: column;
+      padding: 0;
+    }
+    
+    .tab-btn {
+      padding: 12px 16px;
+      justify-content: center;
+    }
+    
+    .actions {
+      flex-direction: column;
+    }
+    
+    .btn {
+      justify-content: center;
+    }
+  }
+</style>
+
+
+<div class="wrap">
+
+  <!-- Hero Section -->
+  <div class="hero">
+    <div class="card welcome-card">
+      <div style="position: relative; z-index: 1;">
+        <div class="h1">Welcome, {{ request.user.name|default:"Collector" }}! 🚚</div>
+        <p class="muted" style="margin: 0 0 20px;">
+          Manage your recycling pickups and marketplace orders efficiently. Make a difference while earning rewards! 🌟
+        </p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <a href="{% url 'marketplace:page' 'collector' %}" class="btn green">➕ Add to Marketplace</a>
+          <a href="{% url 'collector:dashboard' %}" class="btn slate">📋 View All Requests</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="illustr">
+      <div>
+        <div style="font-size: 48px; margin-bottom: 12px;">♻️</div>
+        <div style="font-weight: 600; color: var(--text); margin-bottom: 8px;">Eco Warrior</div>
+        <div class="muted">Collecting for a cleaner planet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpis">
+    <div class="kpi-card"><div class="kpi-icon">🏆</div><div class="kpi-value">{{ stats.points|default:0 }}</div><div class="kpi-label">Reward Points</div></div>
+    <div class="kpi-card"><div class="kpi-icon">✅</div><div class="kpi-value">{{ stats.total_pickups|default:0 }}</div><div class="kpi-label">Completed Pickups</div></div>
+    <div class="kpi-card"><div class="kpi-icon">⚖️</div><div class="kpi-value">{{ stats.total_weight_kg|default:"0.000" }} KG</div><div class="kpi-label">Total Weight</div></div>
+    <div class="kpi-card"><div class="kpi-icon">🌿</div><div class="kpi-value">{{ stats.total_co2_kg|default:"0.000" }} KG</div><div class="kpi-label">CO₂ Saved</div></div>
+  </div>
+
+  <!-- Tab Container -->
+  <div class="tab-container">
+    <div class="tab-header">
+      <button class="tab-btn active" data-tab="pickups">
+        📦 Recent Pickups
+        <span class="count-badge">{{ counts.pickup_total|default:0 }}</span>
+      </button>
+      <button class="tab-btn" data-tab="orders">
+        🛒 Recent Orders
+        <span class="count-badge">{{ counts.order_total|default:0 }}</span>
+      </button>
+    </div>
+
+    <!-- Pickups Tab -->
+    <div class="tab-content active" id="pickupsTab">
+      <div class="content-grid">
+        <!-- Pending -->
+        <div class="section-card">
+          <div class="section-title">
+            ⏳ Pending Requests
+            <span class="count-badge">{{ counts.pickup_pending|default:0 }}</span>
+          </div>
+          {% if pending_pickups %}
+          <table class="table">
+            <thead><tr><th>Type</th><th>Weight</th><th>Price</th><th>Requested</th><th style="width:140px">Actions</th></tr></thead>
+            <tbody>
+            {% for pr in pending_pickups %}
+              <tr>
+                <td>
+                  {% if pr.kind == "plastic" %} 🧴{% elif pr.kind == "paper" %} 📄{% elif pr.kind == "glass" %} 🍶{% elif pr.kind == "metal" %} 🥫{% elif pr.kind == "e_waste" %} 💻{% endif %}
+                  {{ pr.get_kind_label }}
+                </td>
+                <td>{{ pr.weight_kg }} kg</td>
+                <td>BDT {{ pr.price }}</td>
+                <td>{{ pr.created_at|date:"M j, g:i A" }}</td>
+                <td>
+                  <form method="post" class="actions">
+                    {% csrf_token %}
+                    <input type="hidden" name="pickup_id" value="{{ pr.id }}">
+                    <button class="btn green" name="action" value="pickup_accept" title="Accept">✅</button>
+                    <button class="btn red"   name="action" value="pickup_decline" title="Decline">❌</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+            <div class="empty-state"><div class="empty-icon">📭</div><div style="font-weight:600">No Pending Requests</div><div class="muted">New pickup requests will appear here</div></div>
+          {% endif %}
+        </div>
+
+        <!-- Accepted -->
+        <div class="section-card">
+          <div class="section-title">
+            ✅ Accepted Requests
+            <span class="count-badge">{{ counts.pickup_accepted|default:0 }}</span>
+          </div>
+          {% if accepted_pickups %}
+          <table class="table">
+            <thead><tr><th>Type</th><th>Weight</th><th>Price</th><th>Updated</th><th style="width:100px">Action</th></tr></thead>
+            <tbody>
+            {% for pr in accepted_pickups %}
+              <tr>
+                <td>
+                  {% if pr.kind == "plastic" %} 🧴{% elif pr.kind == "paper" %} 📄{% elif pr.kind == "glass" %} 🍶{% elif pr.kind == "metal" %} 🥫{% elif pr.kind == "e_waste" %} 💻{% endif %}
+                  {{ pr.get_kind_label }}
+                </td>
+                <td>{{ pr.weight_kg }} kg</td>
+                <td>BDT {{ pr.price }}</td>
+                <td>{{ pr.updated_at|date:"M j, g:i A" }}</td>
+                <td>
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="pickup_id" value="{{ pr.id }}">
+                    <button class="btn slate" name="action" value="pickup_complete">Complete</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+            <div class="empty-state"><div class="empty-icon">⏳</div><div style="font-weight:600">No Accepted Requests</div><div class="muted">Accept pending requests to see them here</div></div>
+          {% endif %}
+        </div>
+
+        <!-- Completed -->
+        <div class="section-card">
+          <div class="section-title">
+            🎉 Completed Pickups
+            <span class="count-badge">{{ counts.pickup_completed|default:0 }}</span>
+          </div>
+          {% if completed_pickups %}
+          <table class="table">
+            <thead><tr><th>Type</th><th>Weight</th><th>Price</th><th>Completed</th></tr></thead>
+            <tbody>
+            {% for pr in completed_pickups %}
+              <tr>
+                <td>
+                  {% if pr.kind == "plastic" %} 🧴{% elif pr.kind == "paper" %} 📄{% elif pr.kind == "glass" %} 🍶{% elif pr.kind == "metal" %} 🥫{% elif pr.kind == "e_waste" %} 💻{% endif %}
+                  {{ pr.get_kind_label }}
+                </td>
+                <td>{{ pr.weight_kg }} kg</td>
+                <td>BDT {{ pr.price }}</td>
+                <td>{{ pr.updated_at|date:"M j, g:i A" }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+            <div class="empty-state"><div class="empty-icon">📊</div><div style="font-weight:600">No Completed Pickups</div><div class="muted">Complete accepted requests to build your history</div></div>
+          {% endif %}
+        </div>
+
+        <!-- Small Stats -->
+        <div class="section-card">
+          <div class="section-title">📊 Pickup Statistics</div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon">🔄</div><div class="stat-value">{{ counts.pickup_total|default:0 }}</div><div class="stat-label">Total</div></div>
+            <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-value">{{ counts.pickup_pending|default:0 }}</div><div class="stat-label">Pending</div></div>
+            <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value">{{ counts.pickup_completed|default:0 }}</div><div class="stat-label">Completed</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders Tab -->
+    <div class="tab-content" id="ordersTab">
+      <div class="content-grid">
+        <div class="section-card">
+          <div class="section-title">📈 Order Statistics</div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-value">{{ order_stats.total_orders|default:0 }}</div><div class="stat-label">Total Orders</div></div>
+            <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-value">{{ order_stats.pending|default:0 }}</div><div class="stat-label">Pending</div></div>
+            <div class="stat-card"><div class="stat-icon">🚚</div><div class="stat-value">{{ order_stats.delivered|default:0 }}</div><div class="stat-label">Delivered</div></div>
+            <div class="stat-card" style="grid-column: 1 / -1; text-align: center;">
+              <div class="stat-icon">💰</div><div class="stat-value">BDT {{ order_stats.total_revenue|default:"0.00" }}</div><div class="stat-label">Total Revenue</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Orders -->
+        <div class="section-card">
+          <div class="section-title">⏳ Pending Orders <span class="count-badge">{{ counts.order_pending|default:0 }}</span></div>
+          {% if order_pending %}
+          <table class="table">
+            <thead><tr><th>Order #</th><th>Product</th><th>Buyer</th><th>Weight</th><th>Total</th><th style="width:120px">Action</th></tr></thead>
+            <tbody>
+            {% for o in order_pending %}
+              <tr>
+                <td>{{ o.order_no }}</td>
+                <td>{{ o.product_name }}</td>
+                <td>{{ o.buyer.name|default:o.buyer.email }}</td>
+                <td>{{ o.weight_kg }} kg</td>
+                <td>BDT {{ o.total_price }}</td>
+                <td>
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_id" value="{{ o.id }}">
+                    <button class="btn green" name="action" value="order_deliver">Deliver</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+            <div class="empty-state"><div class="empty-icon">📦</div><div style="font-weight:600">No Pending Orders</div><div class="muted">New marketplace orders will appear here</div></div>
+          {% endif %}
+        </div>
+
+        <!-- Delivered Orders -->
+        <div class="section-card">
+          <div class="section-title">✅ Delivered Orders <span class="count-badge">{{ counts.order_delivered|default:0 }}</span></div>
+          {% if order_delivered %}
+          <table class="table">
+            <thead><tr><th>Order #</th><th>Product</th><th>Buyer</th><th>Weight</th><th>Total</th></tr></thead>
+            <tbody>
+            {% for o in order_delivered %}
+              <tr>
+                <td>{{ o.order_no }}</td>
+                <td>{{ o.product_name }}</td>
+                <td>{{ o.buyer.name|default:o.buyer.email }}</td>
+                <td>{{ o.weight_kg }} kg</td>
+                <td>BDT {{ o.total_price }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+            <div class="empty-state"><div class="empty-icon">🎉</div><div style="font-weight:600">No Delivered Orders</div><div class="muted">Deliver pending orders to build your history</div></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-tab');
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        tabContents.forEach(c => c.classList.remove('active'));
+        const active = document.getElementById(tabId + 'Tab');
+        if(active) active.classList.add('active');
+      });
+    });
+  })();
+</script>
+{% endblock %}

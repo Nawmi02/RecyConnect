@@ -125,10 +125,6 @@ def user_detail(request, pk: int):
     user_obj = get_object_or_404(User, pk=pk)
     return render(request, "Admin/ad_profile.html", {"u": user_obj})
 
-
-@guard
-def marketplace(request):  return render(request, "Admin/ad_marketplace.html")
-
 #Learn
 @guard
 def learn(request):
@@ -191,8 +187,6 @@ def learn(request):
     }
     return render(request, "Admin/ad_learn.html", ctx)
 
-@guard
-def rewards(request):      return render(request, "Admin/ad_rewards.html")
 @guard
 def notifications(request):return render(request, "Admin/ad_notifications.html")
 @guard

@@ -174,16 +174,16 @@ def role_required(allowed_roles=()):
 # ---------------- Dashboards ----------------
 @role_required(("household",))
 def household_dashboard(request):
-    return render(request, "Household/h_base.html", {"user": request.user})
+    return render(request, "Household/h_dash.html", {"user": request.user})
 
 @role_required(("buyer",))
 def buyer_dashboard(request):
-    return render(request, "Buyer/b_base.html", {"user": request.user})
+    return render(request, "Buyer/b_dash.html", {"user": request.user})
 
 @role_required(("recycler",))
 def recycler_dashboard(request):
-    return render(request, "Buyer/b_base.html", {"user": request.user}) 
+    return render(request, "Buyer/b_dash.html", {"user": request.user}) 
 
 @role_required(("collector",))
 def collector_dashboard(request):
-    return render(request, "Collector/c_base.html", {"user": request.user})
+    return render(request, "Collector/c_dash.html", {"user": request.user})

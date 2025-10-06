@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'Household',
     'Collector',
     'Buyer',
+    'Pickup.apps.PickupConfig',
 ]
 
 MIDDLEWARE = [

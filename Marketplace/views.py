@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -216,4 +214,4 @@ def marketplace_buy(request, pk: int):
         )
     )
     return redirect("marketplace:detail", pk=pk)
->>>>>>> 5e560501f7c87d02cae2b0e7c2af4b7bb66e31b5
+

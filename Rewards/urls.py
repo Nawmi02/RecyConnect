@@ -1,10 +1,11 @@
 from django.urls import path
 from . import views
 
+app_name = "rewards"
+
 urlpatterns = [
-    path('', views.reward_list, name='reward_list'),
-    path('create/', views.reward_create, name='reward_create'),
-    path('update/<int:id>/', views.reward_update, name='reward_update'),
-    path('delete/<int:id>/', views.reward_delete, name='reward_delete'),
-    path('detail/<int:id>/', views.reward_detail, name='reward_detail'),
+    path("collector/",  views.rewards_page, {"role": "collector"},  name="collector"),
+    path("buyer/",      views.rewards_page, {"role": "buyer"},      name="buyer"),
+    path("household/",  views.rewards_page, {"role": "household"},  name="household"),
+    path("admin/",      views.rewards_page, {"role": "admin"},      name="admin"),
 ]

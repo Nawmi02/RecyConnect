@@ -1,0 +1,946 @@
+{% extends "Admin/admin_base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  :root {
+    --primary: #065f46;
+    --primary-light: #047857;
+    --secondary: #2563eb;
+    --secondary-light: #3b82f6;
+    --light-bg: #f8fafc;
+    --card-bg: #ffffff;
+    --border: #e5e7eb;
+    --text: #111827;
+    --text-muted: #6b7280;
+    --success: #16a34a;
+    --error: #dc2626;
+    --warning: #d97706;
+    --info: #0284c7;
+    --badge-gradient-1: #C1E9C3;
+    --badge-gradient-2: #FFFFFF;
+    --badge-gradient-3: #ADD8E6;
+  }
+  
+  .admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  /* Tab Bar Styles */
+  .content-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 8px;
+  }
+  
+  .content-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: none;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    flex: 1;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .content-tab:hover {
+    background: #e2e8f0;
+    color: #475569;
+  }
+  
+  .content-tab.active {
+    background: white;
+    color: #3b82f6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .tab-icon {
+    font-size: 18px;
+  }
+  
+  /* Content Sections */
+  .content-section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  .content-section.active {
+    display: block;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  
+  .section-title .emoji {
+    font-size: 28px;
+  }
+  
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  
+  .card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+  }
+  
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+  }
+  
+  .badge-card {
+    background: linear-gradient(135deg, var(--badge-gradient-1) 0%, var(--badge-gradient-2) 50%, var(--badge-gradient-3) 100%);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border: none;
+  }
+  
+  .badge-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+  }
+  
+  .reward-card {
+    position: relative;
+    border: none;
+  }
+  
+  .user-card {
+    border: none;
+  }
+  
+  .card h3 {
+    margin: 12px 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  
+  .muted {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  
+  .pill {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .pill.points {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  .pill.rarity-common {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+  
+  .pill.rarity-uncommon {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  
+  .pill.rarity-rare {
+    background: #f0f9ff;
+    color: #0369a1;
+  }
+  
+  .pill.rarity-epic {
+    background: #fae8ff;
+    color: #a21caf;
+  }
+  
+  .pill.rarity-legendary {
+    background: linear-gradient(135deg, #fef3c7, #f59e0b);
+    color: #92400e;
+  }
+  
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 0;
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(5, 95, 70, 0.2);
+  }
+  
+  .btn-secondary {
+    background: var(--secondary);
+    color: white;
+  }
+  
+  .btn-secondary:hover {
+    background: var(--secondary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+  }
+  
+  .btn-light {
+    background: #f3f4f6;
+    color: var(--text);
+  }
+  
+  .btn-light:hover {
+    background: #e5e7eb;
+  }
+  
+  /* Widget Form Styles */
+  .widget-form {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    z-index: 1000;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    display: none;
+  }
+  
+  .widget-form.active {
+    display: block;
+    animation: widgetFadeIn 0.3s ease;
+  }
+  
+  @keyframes widgetFadeIn {
+    from { opacity: 0; transform: translate(-50%, -40%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+  }
+  
+  .form-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    display: none;
+  }
+  
+  .form-overlay.active {
+    display: block;
+  }
+  
+  .form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .form-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px;
+  }
+  
+  .close-btn:hover {
+    color: var(--text);
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  
+  input[type="text"],
+  input[type="number"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: border 0.2s, box-shadow 0.2s;
+  }
+  
+  input[type="text"]:focus,
+  input[type="number"]:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+  
+  textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+  
+  .emoji {
+    font-size: 32px;
+    display: block;
+    text-align: center;
+  }
+  
+  .center {
+    text-align: center;
+  }
+  
+  .lb-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  
+  .lb-item {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: none;
+  }
+  
+  .user-rank {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .rank-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+  }
+  
+  .rank-1 {
+    background: linear-gradient(135deg, #fde047, #eab308);
+  }
+  
+  .rank-2 {
+    background: linear-gradient(135deg, #d1d5db, #9ca3af);
+  }
+  
+  .rank-3 {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+  }
+  
+  .rank-other {
+    background: var(--text-muted);
+  }
+  
+  .user-name {
+    font-weight: 600;
+    font-size: 16px;
+  }
+  
+  .user-role {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  
+  .user-points {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  
+  .reward-image {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .reward-cost {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-weight: 600;
+    color: var(--warning);
+  }
+  
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .status-active {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  .status-inactive {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+  
+  .stock-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--primary);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .message-container {
+    margin: 16px 0;
+  }
+  
+  .message {
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: none;
+  }
+  
+  .message-success {
+    background: #f0fdf4;
+  }
+  
+  .message-error {
+    background: #fef2f2;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748b;
+  }
+  
+  .empty-state h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 16px 0 8px;
+    color: #475569;
+  }
+  
+  .empty-state p {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+</style>
+
+<script>
+  function showTab(tabName) {
+    // Hide all content sections
+    document.querySelectorAll('.content-section').forEach(section => {
+      section.classList.remove('active');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.content-tab').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    
+    // Show selected content section
+    document.getElementById(tabName + '-section').classList.add('active');
+    
+    // Add active class to clicked tab
+    event.target.classList.add('active');
+  }
+  
+  function showWidget(widgetId) {
+    document.getElementById(widgetId).classList.add('active');
+    document.getElementById('formOverlay').classList.add('active');
+  }
+  
+  function hideWidget(widgetId) {
+    document.getElementById(widgetId).classList.remove('active');
+    document.getElementById('formOverlay').classList.remove('active');
+  }
+  
+  // Close widget when clicking outside
+  document.addEventListener('click', function(event) {
+    const widgets = document.querySelectorAll('.widget-form');
+    const overlay = document.getElementById('formOverlay');
+    
+    if (event.target === overlay) {
+      widgets.forEach(widget => {
+        widget.classList.remove('active');
+      });
+      overlay.classList.remove('active');
+    }
+  });
+</script>
+
+<div class="admin-container">
+  {% if messages %}
+    <div class="message-container">
+      {% for m in messages %}
+        <div class="message message-{{ m.tags }}">{{ m }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Tab Bar -->
+  <div class="content-tabs">
+    <button class="content-tab active" onclick="showTab('badges')">
+      <span class="tab-icon">🏅</span>
+      <span>Badges</span>
+    </button>
+    <button class="content-tab" onclick="showTab('leaderboard')">
+      <span class="tab-icon">🏆</span>
+      <span>Leaderboard</span>
+    </button>
+    <button class="content-tab" onclick="showTab('rewards')">
+      <span class="tab-icon">🎁</span>
+      <span>Rewards</span>
+    </button>
+  </div>
+
+  <!-- Form Overlay -->
+  <div class="form-overlay" id="formOverlay"></div>
+
+  <!-- =============== BADGES SECTION =============== -->
+  <div class="content-section active" id="badges-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="emoji">🏅</span>
+        Badge Management
+      </h2>
+      <button class="btn btn-secondary" onclick="showWidget('createBadgeWidget')">
+        <span>+</span> Create Badge
+      </button>
+    </div>
+
+
+    <!-- Badge cards -->
+    <div class="card-grid">
+      {% for b in admin_badges %}
+        <div class="card badge-card">
+          <div class="emoji">{{ b.emoji }}</div>
+          <h3 class="center">{{ b.name }}</h3>
+          <div class="muted center">{{ b.description }}</div>
+          <div class="center" style="margin-top: 12px; display: flex; justify-content: center; gap: 8px;">
+            <span class="pill rarity-{{ b.rarity }}">{{ b.rarity }}</span>
+            {% if b.points_bonus %}
+              <span class="pill points">⭐+{{ b.points_bonus }} pts</span>
+            {% endif %}
+          </div>
+
+          <div class="center" style="margin-top: 16px;">
+            <button class="btn btn-light" onclick="showWidget('updateBadgeWidget{{ b.id }}')">Update Badge</button>
+          </div>
+        </div>
+      {% empty %}
+        <div class="card">
+          <div class="muted center" style="padding: 20px;">No badges created yet. Create your first badge to get started!</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- =============== LEADERBOARD SECTION =============== -->
+  <div class="content-section" id="leaderboard-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="emoji">🏆</span>
+        Leaderboard
+      </h2>
+    </div>
+
+    {% if top_users %}
+      <div class="lb-list">
+        {% for u in top_users|slice:":4" %}
+          <div class="card user-card">
+            <div class="user-rank">
+              <div class="rank-badge rank-{{ forloop.counter }}">{{ forloop.counter }}</div>
+              <div>
+                <div class="user-name">{{ u.name|default:u.email }}</div>
+                <div class="user-role">{{ u.role|title }}</div>
+              </div>
+            </div>
+            <div class="user-points">
+              <span>⭐</span>
+              <span>{{ u.points }} points</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card">
+        <div class="muted center" style="padding: 20px;">No user activities recorded yet. The leaderboard will appear once users start earning points.</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- =============== REWARDS SECTION =============== -->
+  <div class="content-section" id="rewards-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="emoji">🎁</span>
+        Reward Management
+      </h2>
+      <button class="btn btn-secondary" onclick="showWidget('createRewardWidget')">
+        <span>+</span> Add Reward
+      </button>
+    </div>
+
+    <!-- Reward cards -->
+    <div class="card-grid">
+      {% with rewards=admin_rewards|default:items %}
+        {% for it in rewards %}
+          <div class="card reward-card">
+            {% if it.stock and it.stock < 10 %}
+              <div class="stock-badge">Low Stock: {{ it.stock }}</div>
+            {% endif %}
+            
+            <div class="center" style="margin-bottom: 12px">
+              {% if it.image %}
+                <img src="{{ it.image.url }}" alt="{{ it.title }}" class="reward-image">
+              {% else %}
+                <div class="reward-image" style="background: linear-gradient(135deg, var(--badge-gradient-1), var(--badge-gradient-3)); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                  <span style="font-size: 48px;">🎁</span>
+                </div>
+              {% endif %}
+            </div>
+            <h3 class="center">{{ it.title }}</h3>
+            <div class="reward-cost">
+              <span>⭐</span>
+              <span>{{ it.cost_points }} points</span>
+            </div>
+            
+            <div style="display: flex; justify-content: center; gap: 8px; margin-top: 8px;">
+              <span class="status-badge {% if it.is_active %}status-active{% else %}status-inactive{% endif %}">
+                {% if it.is_active %}Active{% else %}Inactive{% endif %}
+              </span>
+              {% if it.stock is not None %}
+                <span class="pill">{{ it.stock }} in stock</span>
+              {% else %}
+                <span class="pill">Unlimited</span>
+              {% endif %}
+            </div>
+
+            <div class="center" style="margin-top: 16px;">
+              <button class="btn btn-light" onclick="showWidget('updateRewardWidget{{ it.id }}')">Update</button>
+            </div>
+          </div>
+        {% empty %}
+          <div class="card">
+            <div class="muted center" style="padding: 20px;">No rewards available yet. Create your first reward to get started!</div>
+          </div>
+        {% endfor %}
+      {% endwith %}
+    </div>
+  </div>
+</div>
+
+<!--WIDGET FORMS-->
+
+<!-- Create Badge Widget -->
+<div class="widget-form" id="createBadgeWidget">
+  <div class="form-header">
+    <h3 class="form-title">Create New Badge</h3>
+    <button class="close-btn" onclick="hideWidget('createBadgeWidget')">×</button>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="admin_save_badge">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Code</label>
+        <input name="code" type="text" placeholder="first_timer" required>
+      </div>
+      <div class="form-group">
+        <label>Name</label>
+        <input name="name" type="text" placeholder="First Timer" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Emoji</label>
+        <input name="emoji" type="text" placeholder="🌟">
+      </div>
+      <div class="form-group">
+        <label>Rarity</label>
+        <select name="rarity">
+          {% for key,label in rarity_choices %}
+            <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Points Bonus</label>
+        <input name="points_bonus" type="number" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" placeholder="Short description..."></textarea>
+      </div>
+    </div>
+    <div style="margin-top: 16px; display: flex; gap: 10px;">
+      <button class="btn btn-primary" type="submit">Save Badge</button>
+      <button type="button" class="btn btn-light" onclick="hideWidget('createBadgeWidget')">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<!-- Create Reward Widget -->
+<div class="widget-form" id="createRewardWidget">
+  <div class="form-header">
+    <h3 class="form-title">Create New Reward</h3>
+    <button class="close-btn" onclick="hideWidget('createRewardWidget')">×</button>
+  </div>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="admin_save_reward">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Title</label>
+        <input name="title" type="text" required>
+      </div>
+      <div class="form-group">
+        <label>Cost Points</label>
+        <input name="cost_points" type="number" min="1" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Stock (blank = unlimited)</label>
+        <input name="stock" type="number" min="0" placeholder="">
+      </div>
+      <div class="form-group">
+        <label>Active?</label>
+        <select name="is_active">
+          <option value="true" selected>Yes</option>
+          <option value="false">No</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Image</label>
+        <input name="image" type="file" accept="image/*">
+      </div>
+    </div>
+    <div style="margin-top: 16px; display: flex; gap: 10px;">
+      <button class="btn btn-primary" type="submit">Save Reward</button>
+      <button type="button" class="btn btn-light" onclick="hideWidget('createRewardWidget')">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<!-- Update Badge Widgets -->
+{% for b in admin_badges %}
+<div class="widget-form" id="updateBadgeWidget{{ b.id }}">
+  <div class="form-header">
+    <h3 class="form-title">Update Badge</h3>
+    <button class="close-btn" onclick="hideWidget('updateBadgeWidget{{ b.id }}')">×</button>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="admin_save_badge">
+    <input type="hidden" name="badge_id" value="{{ b.id }}">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Code</label>
+        <input name="code" type="text" value="{{ b.code }}" required>
+      </div>
+      <div class="form-group">
+        <label>Name</label>
+        <input name="name" type="text" value="{{ b.name }}" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Emoji</label>
+        <input name="emoji" type="text" value="{{ b.emoji }}">
+      </div>
+      <div class="form-group">
+        <label>Rarity</label>
+        <select name="rarity">
+          {% for key,label in rarity_choices %}
+            <option value="{{ key }}" {% if b.rarity == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Points Bonus</label>
+        <input name="points_bonus" type="number" min="0" value="{{ b.points_bonus }}">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="description">{{ b.description }}</textarea>
+      </div>
+    </div>
+    <div style="margin-top: 16px; display: flex; gap: 10px;">
+      <button class="btn btn-primary" type="submit">Update</button>
+      <button type="button" class="btn btn-light" onclick="hideWidget('updateBadgeWidget{{ b.id }}')">Close</button>
+    </div>
+  </form>
+</div>
+{% endfor %}
+
+<!-- Update Reward Widgets -->
+{% with rewards=admin_rewards|default:items %}
+  {% for it in rewards %}
+  <div class="widget-form" id="updateRewardWidget{{ it.id }}">
+    <div class="form-header">
+      <h3 class="form-title">Update Reward</h3>
+      <button class="close-btn" onclick="hideWidget('updateRewardWidget{{ it.id }}')">×</button>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="admin_save_reward">
+      <input type="hidden" name="reward_id" value="{{ it.id }}">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Title</label>
+          <input name="title" type="text" value="{{ it.title }}" required>
+        </div>
+        <div class="form-group">
+          <label>Cost Points</label>
+          <input name="cost_points" type="number" min="1" value="{{ it.cost_points }}" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Stock (blank = unlimited)</label>
+          <input name="stock" type="number" min="0" value="{{ it.stock }}">
+        </div>
+        <div class="form-group">
+          <label>Active?</label>
+          <select name="is_active">
+            <option value="true" {% if it.is_active %}selected{% endif %}>Yes</option>
+            <option value="false" {% if not it.is_active %}selected{% endif %}>No</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Replace Image</label>
+          <input name="image" type="file" accept="image/*">
+        </div>
+      </div>
+      <div style="margin-top: 16px; display: flex; gap: 10px;">
+        <button class="btn btn-primary" type="submit">Update</button>
+        <button type="button" class="btn btn-light" onclick="hideWidget('updateRewardWidget{{ it.id }}')">Close</button>
+      </div>
+    </form>
+  </div>
+  {% endfor %}
+{% endwith %}
+
+{% endblock %}

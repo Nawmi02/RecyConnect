@@ -1,4 +1,3 @@
-# models.py
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -7,9 +6,10 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.conf import settings
 from django.db.models import Avg, Count
 from urllib.parse import urlparse
+from decimal import Decimal, ROUND_HALF_UP
 
 
-# === Manager ===
+# Manager 
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
@@ -114,9 +114,17 @@ class User(AbstractBaseUser):
         help_text="ID/visiting card (required for Collector and Recycling Centre).",
     )
 
-    # === ratings aggregate (for collectors) ===
+    # ratings(for collectors) 
     average_rating = models.FloatField(default=0.0)
     ratings_count  = models.PositiveIntegerField(default=0)
+
+     #Rewards/Points
+    points = models.PositiveIntegerField(default=0, help_text="Total points available to redeem.")
+    total_co2_saved_kg = models.DecimalField(
+        max_digits=12, decimal_places=3, default=Decimal("0.000"),
+        help_text="Lifetime CO₂ saved (kg).",
+    )
+    total_pickups = models.PositiveIntegerField(default=0, help_text="Lifetime pickups/recycles.")
 
     objects = UserManager()
 

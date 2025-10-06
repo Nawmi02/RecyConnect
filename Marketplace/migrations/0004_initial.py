@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('Marketplace', '0003_delete_marketplace'),
+        ('Marketplace', '0001_initial'),
     ]
 
     operations = [
