@@ -61,7 +61,6 @@
             <div class="cc-collector-info">
               {% if user.collector_product %}
                 <div class="cc-product-badge">
-                  <img src="{% static 'icons/package.png' %}" alt="Product" class="cc-product-icon">
                   <span>{{ user.get_collector_product_display }}</span>
                 </div>
               {% endif %}

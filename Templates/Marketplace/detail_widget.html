@@ -1,5 +1,4 @@
 {% load static %}
-<!-- Marketplace Detail Widget (standalone, no extends) -->
 <div class="mp-detail-widget" id="mp-detail-{{ item.id }}"
      data-price="{{ item.price|floatformat:'2' }}"
      data-max="{{ item.weight|floatformat:'2' }}"
@@ -172,7 +171,8 @@
           <div class="mpd-order">
             <div class="mpd-alert"><strong>Important:</strong> Orders cannot be cancelled after confirmation.</div>
 
-            <form class="mpd-form" method="post" action="{% url 'marketplace:buy' item.id %}">
+           <form class="mpd-form" method="post" action="{% url 'marketplace:buy' pk=item.id %}">
+
               {% csrf_token %}
               <div class="mpd-row">
                 <div class="mpd-field">

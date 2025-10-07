@@ -10,5 +10,5 @@ urlpatterns = [
     path("admin/",      views.marketplace_page, {"role": "admin"},      name="admin"),
 
     path("item/<int:pk>/", views.marketplace_detail, name="detail"),
-    path("item/<int:pk>/buy/", views.marketplace_buy, name="buy"),
+    path("buy/<int:pk>/", views.marketplace_buy, name="buy"),
 ]

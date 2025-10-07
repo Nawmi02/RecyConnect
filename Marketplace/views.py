@@ -6,7 +6,7 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404, redirect
 from decimal import Decimal, InvalidOperation
 
-from .models import Marketplace, MarketTag
+from .models import Marketplace, MarketTag,MarketOrder
 
 ADD_ALLOWED_ROLES = {"collector"}
 
@@ -161,20 +161,11 @@ def marketplace_detail(request, pk: int):
 @login_required
 @transaction.atomic
 def marketplace_buy(request, pk: int):
-    """
-    Buy Now (COD only):
-    - Expect POST with 'weight' (Decimal string, e.g. "2.50")
-    - Validate availability
-    - Calculate total using Decimal arithmetic
-    - Decrease stock atomically
-    - Mark item sold out when stock hits zero
-    """
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
 
     item = get_object_or_404(Marketplace, pk=pk, is_available=True)
 
-    # Parse requested weight as Decimal (never float)
     raw_weight = (request.POST.get("weight") or "0").strip()
     try:
         req_weight = Decimal(raw_weight).quantize(Decimal("0.01"))
@@ -184,34 +175,36 @@ def marketplace_buy(request, pk: int):
         messages.error(request, "Enter a valid weight (> 0).")
         return redirect("marketplace:detail", pk=pk)
 
-    # Recheck stock inside the transaction
     item.refresh_from_db()
-
     if item.weight < req_weight:
         messages.error(request, f"Only {item.weight} kg available.")
         return redirect("marketplace:detail", pk=pk)
 
-    # All-Decimal total price
     total_price = (item.price * req_weight).quantize(Decimal("0.01"))
 
-    # Decrease stock atomically
+    # 1) Decrease stock atomically
     Marketplace.objects.filter(pk=item.pk).update(weight=F("weight") - req_weight)
     item.refresh_from_db()
 
-    # Mark sold out if depleted
-    if item.weight <= Decimal("0"):
+    # 2) CREATE ORDER ✅
+    order = MarketOrder.objects.create(
+        order_no=MarketOrder.new_order_no(),
+        buyer=request.user,
+        collector=item.seller,    
+        marketplace=item,
+        product_name=item.name,   
+        weight_kg=req_weight,
+        unit_price=item.price,
+        total_price=total_price,
+        status=MarketOrder.Status.PENDING,
+    )
+
+    # 3) Sold-out toggle
+    from decimal import Decimal as D
+    if item.weight <= D("0"):
         item.is_available = False
         item.save(update_fields=["is_available"])
 
-    messages.success(
-        request,
-        (
-            f"Your order has been placed successfully for {req_weight} kg. "
-            f"Total amount: {total_price:.2f} BDT.\n\n"
-            "Note: You cannot cancel after placing the order.\n"
-            "Please pay cash on delivery and contact the Collector for more information. "
-            "You can find his/her contact details from the Community section."
-        )
-    )
-    return redirect("marketplace:detail", pk=pk)
+    print("ORDER CREATED:", order.id, order.order_no, "buyer=", request.user.id, "collector=", item.seller_id)
 
+    return redirect("marketplace:detail", pk=item.pk)

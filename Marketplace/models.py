@@ -27,6 +27,9 @@ class MarketTag(models.Model):
 
     def __str__(self) -> str:
         return self.get_name_display()
+    class Meta:
+        db_table = "Marketplace_markettag"   
+        ordering = ("id",)
 
 
 class MarketplaceQuerySet(models.QuerySet):
@@ -49,7 +52,7 @@ class Marketplace(models.Model):
         METAL   = "metal",   "Metal"
         PLASTIC = "plastic", "Plastic"
         PAPER   = "paper",   "Paper"
-        E_WASTE = "ewaste",  "E-waste"   # <- keep consistent with forms/views
+        E_WASTE = "ewaste",  "E-waste"  
         GLASS   = "glass",   "Glass"
 
     # Seller: must be approved Collector / Buyer / Recycler
@@ -85,7 +88,8 @@ class Marketplace(models.Model):
     objects = MarketplaceQuerySet.as_manager()
 
     class Meta:
-        ordering = ("-id",)
+       db_table = "Marketplace_marketplace" 
+       ordering = ("id",)
 
     def __str__(self) -> str:
         return f"{self.name} — {self.get_product_type_display()}"
@@ -144,6 +148,7 @@ class MarketOrder(models.Model):
     updated_at   = models.DateTimeField(auto_now=True)
 
     class Meta:
+        db_table = "Marketplace_marketorder"
         ordering = ("-id",)
         indexes = [
             models.Index(fields=["buyer", "created_at"]),

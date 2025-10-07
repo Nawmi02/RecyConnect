@@ -17,6 +17,9 @@ from django.contrib.auth import get_user_model
 from RecyCon.models import Product
 from Rewards.models import Activity
 from Pickup.models import PickupRequest
+from django.views.decorators.cache import never_cache
+from django.db.models import Q
+
 
 from Education.views import (
     education_awareness_h,
@@ -25,6 +28,15 @@ from Education.views import (
     view_video,
     download_video,
 )
+
+def _no_cache(resp):
+    resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp["Pragma"] = "no-cache"
+    resp["Expires"] = "0"
+    resp["Vary"] = resp.get("Vary", "")
+    if "cookie" not in resp["Vary"].lower():
+        resp["Vary"] = (resp["Vary"] + ", Cookie").strip(", ")
+    return resp
 
 User = get_user_model()
 
@@ -37,61 +49,64 @@ def _stats(user):
         "total_co2_kg": user.total_co2_saved_kg,
     }
 
+@never_cache
 @login_required(login_url="user:login")
 def dashboard(request):
     user = request.user
-
     if getattr(user, "role", None) != "household":
         messages.error(request, "Household dashboard is only for household accounts.")
         return redirect("/")
 
-    if request.method == "POST" and request.POST.get("action") == "request_pickup":
-        kind = (request.POST.get("kind") or "").strip()
-        wraw = request.POST.get("weight") or "0"
-        praw = request.POST.get("price") or "0"
-        try:
-            weight = Decimal(wraw); price = Decimal(praw)
-            if weight <= 0 or price < 0:
-                raise InvalidOperation
-        except Exception:
-            messages.error(request, "Please provide valid numbers for weight and price.")
-            return redirect(request.path)
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "request_pickup":
+            kind = (request.POST.get("kind") or "").strip()
+            wraw = (request.POST.get("weight") or "0").strip()
+            praw = (request.POST.get("price") or "0").strip()
+            try:
+                weight = Decimal(wraw)
+                price = Decimal(praw)
+                if weight <= 0 or price < 0:
+                    raise InvalidOperation
+            except Exception:
+                messages.error(request, "Please provide valid numbers for weight and price.")
+                return redirect("household:dashboard")
 
-        with transaction.atomic():
-            product = Product.objects.create(kind=kind, weight=weight, price=price)
+            with transaction.atomic():
+                product = Product.objects.create(kind=kind, weight=weight, price=price)
+                collectors_qs = User.objects.filter(
+                    role="collector", is_approved=True).filter(
+                         Q(collector_product__iexact=kind) 
+                      ).only("id", "collector_product")
+                created = 0
+                for c in collectors_qs:
+                    _, ok = PickupRequest.objects.get_or_create(
+                        requester=user, collector=c, product=product,
+                        defaults={"status": PickupRequest.Status.PENDING,
+                                  "kind": kind, "weight_kg": weight, "price": price}
+                    )
+                    if ok: created += 1
 
-            # approved collectors who collect this kind
-            collectors = User.objects.filter(
-                role="collector", is_approved=True, collector_product=kind
-            ).only("id")
+            if created:
+                messages.success(request, f"Pickup request sent to {created} matching collector(s).")
+            else:
+                messages.warning(request, "No approved collectors found for this product type.")
+            return redirect("household:dashboard")
 
-            created = 0
-            for c in collectors:
-                _, ok = PickupRequest.objects.get_or_create(
-                    requester=user,
-                    collector=c,
-                    product=product,
-                    defaults={"status": PickupRequest.Status.PENDING},
-                )
-                if ok:
-                    created += 1
+        messages.error(request, "Unknown form submission.")
+        return redirect("household:dashboard")
 
-        if created:
-            messages.success(request, f"Pickup request sent to {created} matching collector(s).")
-        else:
-            messages.warning(request, "No approved collectors found for this product type.")
-        return redirect(request.path)
+    requests_qs = (
+    PickupRequest.objects
+    .filter(requester_id=user.id)
+    .exclude(status=PickupRequest.Status.DECLINED)   
+    .select_related("collector", "product")
+    .order_by("-created_at")[:10]
+)
 
-    ctx = {
-        "stats": _stats(user),
-        "requests": (
-            PickupRequest.objects
-            .filter(requester=user)
-            .select_related("collector", "product")
-            .order_by("-created_at")[:10]
-        ),
-    }
-    return render(request, "Household/h_dash.html", ctx)  
+    ctx = {"stats": _stats(user), "requests": requests_qs}
+    resp = render(request, "Household/h_dash.html", ctx)  
+    return _no_cache(resp)
 
 #Community
 @login_required(login_url="user:login")

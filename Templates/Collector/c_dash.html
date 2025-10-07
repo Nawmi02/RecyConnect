@@ -4,6 +4,7 @@
 {% block title %}Collector Dashboard - RecyConnect{% endblock %}
 
 {% block content %}
+{% if user.is_authenticated %}
 <style>
   :root {
     --primary: #10b981;
@@ -70,9 +71,11 @@
     margin: 0 0 12px;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     -webkit-background-clip: text;
+    -moz-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
-  }
-
+    color: transparent; 
+}
   .muted {
     color: var(--muted);
     line-height: 1.6;
@@ -491,7 +494,17 @@
           </div>
           {% if pending_pickups %}
           <table class="table">
-            <thead><tr><th>Type</th><th>Weight</th><th>Price</th><th>Requested</th><th style="width:140px">Actions</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Weight</th>
+                <th>Price</th>
+                <th>Requester</th><!-- NEW -->
+                <th>Address</th><!-- NEW -->
+                <th>Requested</th>
+                <th style="width:140px">Actions</th>
+              </tr>
+            </thead>
             <tbody>
             {% for pr in pending_pickups %}
               <tr>
@@ -501,6 +514,8 @@
                 </td>
                 <td>{{ pr.weight_kg }} kg</td>
                 <td>BDT {{ pr.price }}</td>
+                <td>{{ pr.requester.name|default:pr.requester.email }}</td><!-- NEW -->
+                <td>{% if pr.requester.address %}{{ pr.requester.address }}{% else %}—{% endif %}</td><!-- NEW -->
                 <td>{{ pr.created_at|date:"M j, g:i A" }}</td>
                 <td>
                   <form method="post" class="actions">
@@ -527,7 +542,17 @@
           </div>
           {% if accepted_pickups %}
           <table class="table">
-            <thead><tr><th>Type</th><th>Weight</th><th>Price</th><th>Updated</th><th style="width:100px">Action</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Weight</th>
+                <th>Price</th>
+                <th>Requester</th><!-- NEW -->
+                <th>Address</th><!-- NEW -->
+                <th>Updated</th>
+                <th style="width:100px">Action</th>
+              </tr>
+            </thead>
             <tbody>
             {% for pr in accepted_pickups %}
               <tr>
@@ -537,6 +562,8 @@
                 </td>
                 <td>{{ pr.weight_kg }} kg</td>
                 <td>BDT {{ pr.price }}</td>
+                <td>{{ pr.requester.name|default:pr.requester.email }}</td><!-- NEW -->
+                <td>{% if pr.requester.address %}{{ pr.requester.address }}{% else %}—{% endif %}</td><!-- NEW -->
                 <td>{{ pr.updated_at|date:"M j, g:i A" }}</td>
                 <td>
                   <form method="post">
@@ -562,7 +589,16 @@
           </div>
           {% if completed_pickups %}
           <table class="table">
-            <thead><tr><th>Type</th><th>Weight</th><th>Price</th><th>Completed</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Weight</th>
+                <th>Price</th>
+                <th>Requester</th><!-- NEW -->
+                <th>Address</th><!-- NEW -->
+                <th>Completed</th>
+              </tr>
+            </thead>
             <tbody>
             {% for pr in completed_pickups %}
               <tr>
@@ -572,6 +608,8 @@
                 </td>
                 <td>{{ pr.weight_kg }} kg</td>
                 <td>BDT {{ pr.price }}</td>
+                <td>{{ pr.requester.name|default:pr.requester.email }}</td><!-- NEW -->
+                <td>{% if pr.requester.address %}{{ pr.requester.address }}{% else %}—{% endif %}</td><!-- NEW -->
                 <td>{{ pr.updated_at|date:"M j, g:i A" }}</td>
               </tr>
             {% endfor %}
@@ -682,4 +720,14 @@
     });
   })();
 </script>
+{% else %}
+<div class="wrap">
+  <div class="empty-state">
+    <div class="empty-icon">🔒</div>
+    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Please log in</div>
+    <div class="muted">You must be logged in to request pickups and view orders.</div>
+    <a href="{% url 'user:login' %}" class="btn" style="margin-top:16px;">Login</a>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

@@ -4,6 +4,7 @@
 {% block title %}Buyer Dashboard - RecyConnect{% endblock %}
 
 {% block content %}
+{% if user.is_authenticated %}
 <style>
   :root {
     --primary: #10b981;
@@ -70,8 +71,11 @@
     margin: 0 0 12px;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     -webkit-background-clip: text;
+    -moz-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
-  }
+    color: transparent; 
+}
 
   .muted {
     color: var(--muted);
@@ -538,7 +542,7 @@
       <div class="form-title">♻️ New Recycling Request</div>
       <button class="close-btn" id="closeForm">&times;</button>
     </div>
-    <form method="post" action="">
+    <form method="post" action="{% url 'buyer:dashboard' %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="request_pickup">
       <div class="form-row">
@@ -606,7 +610,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-icon">💰</div>
-          <div class="stat-value">₹{{ stats.total_earnings|default:"0.00" }}</div>
+          <div class="stat-value">৳{{ stats.total_earnings|default:"0.00" }}</div>
           <div class="stat-label">Total Earnings</div>
         </div>
       </div>
@@ -696,7 +700,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-icon">💰</div>
-          <div class="stat-value">₹{{ order_stats.total_spent|default:"0.00" }}</div>
+          <div class="stat-value">৳{{ order_stats.total_spent|default:"0.00" }}</div>
           <div class="stat-label">Total Spent</div>
         </div>
       </div>
@@ -816,4 +820,14 @@
     });
   })();
 </script>
+{% else %}
+<div class="wrap">
+  <div class="empty-state">
+    <div class="empty-icon">🔒</div>
+    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Please log in</div>
+    <div class="muted">You must be logged in to request pickups and view orders.</div>
+    <a href="{% url 'user:login' %}" class="btn" style="margin-top:16px;">Login</a>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
