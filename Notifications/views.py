@@ -1,40 +1,52 @@
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Notifications
-from django import forms
+from django.views.decorators.http import require_POST
+from .models import Notification
 
-class NotificationForm(forms.ModelForm):
-    class Meta:
-        model = Notifications
-        fields = ['text', 'icon', 'is_read']
+@login_required
+def inbox(request):
+    
+    items = Notification.objects.filter(user=request.user).order_by("-created_at")[:100]
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return render(request, "notifications/inbox.html", {
+        "items": items,
+        "unread_count": unread_count,
+        "is_admin_panel": True,  
+    })
 
-def notification_list(request):
-    notifications = Notifications.objects.all().order_by('-created_at')
-    return render(request, 'notifications/notification_list.html', {'notifications': notifications})
+@login_required
+@require_POST
+def mark_read(request, pk):
+    n = get_object_or_404(Notification, pk=pk, user=request.user)
+    n.is_read = True
+    n.save(update_fields=["is_read"])
+    return redirect(request.META.get("HTTP_REFERER") or "notifications:inbox")
 
-def notification_create(request):
-    if request.method == "POST":
-        form = NotificationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('notification_list')
-    else:
-        form = NotificationForm()
-    return render(request, 'notifications/notification_form.html', {'form': form})
+@login_required
+@require_POST
+def mark_all_read(request):
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return redirect(request.META.get("HTTP_REFERER") or "notifications:inbox")
 
-def notification_update(request, id):
-    notification = get_object_or_404(Notifications, id=id)
-    if request.method == "POST":
-        form = NotificationForm(request.POST, instance=notification)
-        if form.is_valid():
-            form.save()
-            return redirect('notification_list')
-    else:
-        form = NotificationForm(instance=notification)
-    return render(request, 'notifications/notification_form.html', {'form': form})
+# ---------- APIs for navbar bell ----------
+@login_required
+def unread_count_api(request):
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({"unread": count})
 
-def notification_delete(request, id):
-    notification = get_object_or_404(Notifications, id=id)
-    if request.method == "POST":
-        notification.delete()
-        return redirect('notification_list')
-    return render(request, 'notifications/notification_confirm_delete.html', {'notification': notification})
+@login_required
+def list_api(request):
+    # lightweight JSON list (e.g., navbar dropdown)
+    qs = Notification.objects.filter(user=request.user).order_by("-created_at")[:20]
+    data = [{
+        "id": n.id,
+        "title": n.title,
+        "message": n.message,
+        "category": n.category,
+        "created_at": n.created_at.isoformat(),
+        "is_read": n.is_read,
+        "link_url": n.link_url,
+        "payload": n.payload,
+    } for n in qs]
+    return JsonResponse({"items": data})
