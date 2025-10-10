@@ -1,12 +1,6 @@
 from django.conf import settings
 from django.db import models
 
-class Notifications(models.Model):
-    text = models.CharField(max_length=200)
-    created_at = models.DateTimeField(default=True)
-    icon = models.CharField(max_length=20)
-    is_read = models.BooleanField(default=False)
-
 class Notification(models.Model):
     class Category(models.TextChoices):
         GENERAL = "general", "General"
@@ -15,17 +9,10 @@ class Notification(models.Model):
         ORDER   = "order",   "Order"
         SYSTEM  = "system",  "System"
 
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="notifications",
-        db_index=True,
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
     title    = models.CharField(max_length=140)
     message  = models.TextField(blank=True)
-    category = models.CharField(
-        max_length=20, choices=Category.choices, default=Category.GENERAL, db_index=True
-    )
+    category = models.CharField(max_length=20, choices=Category.choices, default=Category.GENERAL)
     link_url = models.URLField(blank=True)
     payload  = models.JSONField(default=dict, blank=True)
 
@@ -39,5 +26,5 @@ class Notification(models.Model):
             models.Index(fields=["user", "category", "created_at"]),
         ]
 
-    def str(self):
+    def __str__(self):
         return f"[{self.category}] {self.title} → {self.user_id}"

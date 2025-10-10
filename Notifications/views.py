@@ -1,52 +1,59 @@
+# notifications/views.py
+from __future__ import annotations
+
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
+
 from .models import Notification
+
+ROLE_TEMPLATES = {
+    "buyer": "Buyer/b_notifications.html",
+    "collector": "Collector/c_notifications.html",
+    "household": "Household/h_notifications.html",
+}
+
+def _template_for_role(user) -> str:
+    role = (getattr(user, "role", "") or "").lower()
+    tpl = ROLE_TEMPLATES.get(role)
+    if not tpl:
+        raise Http404("No notifications page for this role.")
+    return tpl
+
 
 @login_required
 def inbox(request):
-    
-    items = Notification.objects.filter(user=request.user).order_by("-created_at")[:100]
-    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
-    return render(request, "notifications/inbox.html", {
+    template = _template_for_role(request.user)
+
+    # total count (all), list (latest 100)
+    total_count = Notification.objects.filter(user=request.user).count()
+    items = (
+        Notification.objects
+        .filter(user=request.user)
+        .order_by("-created_at")[:100]
+    )
+
+    ctx = {
         "items": items,
-        "unread_count": unread_count,
-        "is_admin_panel": True,  
-    })
+        "total_count": total_count,   # 👈 মোট নোটিফিকেশনের সংখ্যা
+        "role": getattr(request.user, "role", ""),
+    }
+    return render(request, template, ctx)
+
 
 @login_required
 @require_POST
-def mark_read(request, pk):
+def delete(request, pk: int):
+    """Single notification delete."""
     n = get_object_or_404(Notification, pk=pk, user=request.user)
-    n.is_read = True
-    n.save(update_fields=["is_read"])
-    return redirect(request.META.get("HTTP_REFERER") or "notifications:inbox")
+    n.delete()
+    return redirect("notifications:inbox")
+
 
 @login_required
 @require_POST
-def mark_all_read(request):
-    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
-    return redirect(request.META.get("HTTP_REFERER") or "notifications:inbox")
-
-# ---------- APIs for navbar bell ----------
-@login_required
-def unread_count_api(request):
-    count = Notification.objects.filter(user=request.user, is_read=False).count()
-    return JsonResponse({"unread": count})
-
-@login_required
-def list_api(request):
-    # lightweight JSON list (e.g., navbar dropdown)
-    qs = Notification.objects.filter(user=request.user).order_by("-created_at")[:20]
-    data = [{
-        "id": n.id,
-        "title": n.title,
-        "message": n.message,
-        "category": n.category,
-        "created_at": n.created_at.isoformat(),
-        "is_read": n.is_read,
-        "link_url": n.link_url,
-        "payload": n.payload,
-    } for n in qs]
-    return JsonResponse({"items": data})
+def delete_all(request):
+    """Delete all notifications for this user."""
+    Notification.objects.filter(user=request.user).delete()
+    return redirect("notifications:inbox")

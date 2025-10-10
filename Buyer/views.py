@@ -119,7 +119,7 @@ def dashboard(request):
             Q(collector_product__iexact=kind)
             ).only("id", "collector_product")
 
-            # 3) PickupRequest
+            #  PickupRequest
             created = 0
             for c in collectors_qs:
                     _, ok = PickupRequest.objects.get_or_create(
@@ -145,7 +145,7 @@ def dashboard(request):
         messages.error(request, "Unknown form submission.")
         return redirect("buyer:dashboard")
 
-    # ---------- Lists ----------
+    #  Lists 
     pickup_qs = (
        PickupRequest.objects
        .filter(requester_id=user.id)

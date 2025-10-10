@@ -29,4 +29,5 @@ urlpatterns = [
     path("education/", include(("Education.urls", "education"), namespace="education")),
     path("marketplace/", include(("Marketplace.urls", "marketplace"), namespace="marketplace")),
     path("rewards/", include(("Rewards.urls", "rewards"), namespace="rewards")),
+    path("notifications/", include(("Notifications.urls", "notifications"), namespace="notifications")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,45 +1,429 @@
 {% extends "Household/h_base.html" %}
 {% load static %}
 
+{% block title %}Notifications - Household{% endblock %}
+
 {% block content %}
-<div class="max-w-2xl mx-auto p-6">
-    <h1 class="text-2xl font-bold text-green-600 mb-6">Notifications</h1>
 
-    <div class="space-y-4">
-        {% for notification in notifications %}
-        <div class="flex items-center p-4 rounded-2xl shadow-md bg-white border border-gray-200">
-            <!-- Icon -->
-            <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full 
-                        {% if notification.type == 'success' %}
-                            bg-green-100 text-green-600
-                        {% elif notification.type == 'info' %}
-                            bg-blue-100 text-blue-600
-                        {% elif notification.type == 'reward' %}
-                            bg-yellow-100 text-yellow-600
-                        {% else %}
-                            bg-gray-100 text-gray-600
-                        {% endif %}
-                        ">
-                <i class="{{ notification.icon }} text-xl"></i>
-            </div>
+<style>
+  :root {
+    --primary: #0ea5a0;
+    --primary-light: #14b8b3;
+    --primary-dark: #0b8a86;
+    --secondary: #2563eb;
+    --secondary-light: #3b82f6;
+    --accent: #8b5cf6;
+    --text: #0f172a;
+    --text-light: #475569;
+    --text-muted: #64748b;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --success: #10b981;
+    --success-light: #d1fae5;
+    --warning: #f59e0b;
+    --warning-light: #fef3c7;
+    --error: #ef4444;
+    --error-light: #fef2f2;
+    --info: #3b82f6;
+    --info-light: #dbeafe;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
 
-            <!-- Text -->
-            <div class="ml-4 flex-1">
-                <p class="text-gray-800 font-medium">{{ notification.message }}</p>
-                <span class="text-sm text-gray-500">{{ notification.time }}</span>
-            </div>
+  .notifications-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px 20px;
+    min-height: 80vh;
+  }
 
-            <!-- Delete button -->
-            <form method="post" action="{% url 'delete_notification' notification.id %}">
-                {% csrf_token %}
-                <button type="submit" class="ml-3 text-gray-400 hover:text-red-500">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </form>
-        </div>
-        {% empty %}
-        <p class="text-center text-gray-500">No notifications available.</p>
-        {% endfor %}
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .page-title::before {
+    content: "🔔";
+    font-size: 1.5rem;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .stats-badge {
+    background: var(--card);
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.875rem;
+  }
+
+  .action-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .action-btn:hover {
+    background: #f8fafc;
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  /* Notification Cards - Simple & Clean */
+  .notification-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .notification-card.unread {
+    background: var(--card);
+    border-left: 4px solid var(--primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .notification-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: #cbd5e1;
+  }
+
+  .notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+
+  .notification-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  .notification-badge {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .badge-success { background: var(--success-light); color: #065f46; border: 1px solid #a7f3d0; }
+  .badge-warning { background: var(--warning-light); color: #92400e; border: 1px solid #fde68a; }
+  .badge-error { background: var(--error-light); color: #991b1b; border: 1px solid #fecaca; }
+  .badge-info { background: var(--info-light); color: #1e40af; border: 1px solid #dbeafe; }
+  .badge-default { background: #f8fafc; color: var(--text-light); border: 1px solid #e2e8f0; }
+
+  .notification-content {
+    color: var(--text-light);
+    line-height: 1.5;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+  }
+
+  .notification-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .notification-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .notification-time {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .notification-time::before {
+    content: "🕒";
+    font-size: 0.75rem;
+  }
+
+  .notification-category {
+    padding: 2px 8px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: var(--text-light);
+  }
+
+  .notification-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid transparent;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-dark);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-light);
+    border-color: var(--border);
+  }
+
+  .btn-secondary:hover {
+    background: #f8fafc;
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    display: block;
+    opacity: 0.5;
+  }
+
+  .empty-state h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .empty-state p {
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.5;
+    font-size: 0.95rem;
+    color: var(--text-light);
+  }
+
+  /* Simple animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .notification-card {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .notifications-container {
+      padding: 20px 16px;
+    }
+
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .header-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .notification-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .notification-footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .notification-meta {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .notification-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+</style>
+
+<div class="notifications-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">Notifications</h1>
+    <div class="header-actions">
+      <div class="stats-badge">
+        <span>📊</span>
+        Total: {{ total_count|default:0 }}
+      </div>
+      {% if unread_count|default:0 > 0 %}
+      <div class="stats-badge" style="background: #f0f9ff; border-color: #bae6fd;">
+        <span>👁️</span>
+        Unread: {{ unread_count }}
+      </div>
+      {% endif %}
     </div>
+  </div>
+
+  <!-- Notifications List -->
+  <div class="notifications-list">
+    {% for n in items %}
+      <div class="notification-card {% if not n.is_read %}unread{% endif %}">
+        <div class="notification-header">
+          <h3 class="notification-title">{{ n.title }}</h3>
+          <div class="notification-badge 
+            {% if n.category == 'success' %}badge-success
+            {% elif n.category == 'warning' %}badge-warning
+            {% elif n.category == 'error' %}badge-error
+            {% elif n.category == 'info' %}badge-info
+            {% else %}badge-default{% endif %}">
+            {{ n.category|title }}
+          </div>
+        </div>
+
+        {% if n.message %}
+          <div class="notification-content">
+            {{ n.message }}
+          </div>
+        {% endif %}
+
+        <div class="notification-footer">
+          <div class="notification-meta">
+            <div class="notification-time">
+              {{ n.created_at|date:"M j, Y g:i A" }}
+            </div>
+            <div class="notification-category">
+              {{ n.category|title }}
+            </div>
+          </div>
+
+          <div class="notification-actions">
+            {% if n.link_url %}
+              <a href="{{ n.link_url }}" class="btn-primary" target="_blank" rel="noopener">
+                <span>🔗</span>
+                View
+              </a>
+            {% endif %}
+            <form method="post" action="{% url 'notifications:delete' n.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn-secondary" title="Delete this notification">
+                <span>🗑️</span>
+                Delete
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state">
+        <span class="empty-state-icon">🔔</span>
+        <h3>No Notifications</h3>
+        <p>You're all caught up! New notifications will appear here.</p>
+      </div>
+    {% endfor %}
+  </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Simple hover effects
+    const cards = document.querySelectorAll('.notification-card');
+    cards.forEach(card => {
+      card.addEventListener('mouseenter', function() {
+        this.style.boxShadow = 'var(--shadow-md)';
+      });
+      card.addEventListener('mouseleave', function() {
+        this.style.boxShadow = '';
+      });
+    });
+
+    // Confirm delete actions
+    const deleteForms = document.querySelectorAll('form[action*="delete"]');
+    deleteForms.forEach(form => {
+      form.addEventListener('submit', function(e) {
+        if (!confirm('Are you sure you want to delete this notification?')) {
+          e.preventDefault();
+        }
+      });
+    });
+  });
+</script>
+
 {% endblock %}

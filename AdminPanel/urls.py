@@ -11,7 +11,6 @@ urlpatterns = [
 
     path("create-admin/", views.create_admin, name="create_admin"),
     path("community/", views.community, name="community"),
-    path("users/<int:pk>/", views.user_detail, name="user_detail"),
     path("learn/", views.learn, name="learn"),
     path("my-profile/", views.my_profile, name="my_profile"),
     path("settings/", views.settings_view, name="settings"),

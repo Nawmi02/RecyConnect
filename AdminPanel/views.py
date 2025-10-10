@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.apps import apps
 from Education.models import Learn, Tag
-
+from django.db.models import Q
 
 from User.services import (
     send_account_approved_email,
@@ -24,19 +24,19 @@ def staff_or_super(u):
 
 guard = user_passes_test(staff_or_super, login_url="user:login")  
 
-# ---------- Dashboard (now passes pending_users) ----------
+# Dashboard (now passes pending_users) 
 @guard
 def dashboard(request):
     pending = User.objects.filter(is_approved=False).order_by("-date_joined")
     return render(request, "Admin/ad_dashboard.html", {"pending_users": pending})
 
-# ---------- Approvals list (optional separate page) ----------
+#  Approvals list (optional separate page) 
 @guard
 def approvals(request):
     pending = User.objects.filter(is_approved=False).order_by("-date_joined")
     return render(request, "Admin/approvals.html", {"pending_users": pending})
 
-# ---------- Approve a user + send mail ----------
+# Approve a user + send mail 
 @guard
 @transaction.atomic
 def approve_user(request, pk):
@@ -61,7 +61,7 @@ def approve_user(request, pk):
     messages.success(request, f"Approved. A confirmation email will be sent to {target.email}.")
     return redirect("adminpanel:dashboard")
 
-# ---------- Decline a user (simple: leave inactive & not approved) ----------
+# Decline a user (simple: leave inactive & not approved) 
 @guard
 @transaction.atomic
 def decline_user(request, pk):
@@ -76,7 +76,7 @@ def decline_user(request, pk):
     messages.success(request, f"Declined {target.email}.")
     return redirect("adminpanel:dashboard")
 
-# ---------- Create admin + send mail ----------
+# Create admin + send mail
 @guard
 @transaction.atomic
 def create_admin(request):
@@ -94,16 +94,15 @@ def create_admin(request):
             return redirect("adminpanel:create_admin")
 
         raw_password = secrets.token_urlsafe(10)
-
         admin_user = User(
-            email=email,
-            name=name,
-            role="buyer",   
-            is_staff=True,
-            is_superuser=bool(make_super),
-            is_active=True,
-            is_approved=True,
-        )
+         email=email,
+         name=name,
+         role="admin",   
+         is_staff=True,
+         is_superuser=bool(make_super),
+         is_active=True,
+         is_approved=True,
+      )
         admin_user.set_password(raw_password)
         admin_user.save()
 
@@ -116,15 +115,47 @@ def create_admin(request):
 #Community
 @guard
 def community(request):
-    
-    users = User.objects.filter(is_approved=True).order_by('-date_joined')
-    return render(request, "Admin/ad_community.html", {"users": users})
-@guard
-def user_detail(request, pk: int):
-   
-    user_obj = get_object_or_404(User, pk=pk)
-    return render(request, "Admin/ad_profile.html", {"u": user_obj})
+    q = (request.GET.get("q") or "").strip()
+    role = (request.GET.get("role") or "").strip().lower()
 
+    users = User.objects.filter(
+    Q(is_approved=True) | Q(is_staff=True) | Q(is_superuser=True)
+)
+
+    try:
+        role_choices = [(c, lbl) for c, lbl in User.Role.choices]
+    except Exception:
+        role_choices = [
+            ("buyer", "Buyer"),
+            ("collector", "Collector"),
+            ("household", "Household"),
+            ("recycler", "Recycler"),
+            ("admin", "Admin"),
+        ]
+
+    # role filter
+    valid_codes = {c for c, _ in role_choices}
+    if role and role in valid_codes:
+        users = users.filter(role=role)
+
+    # search
+    if q:
+        users = users.filter(
+            Q(name__icontains=q) | Q(email__icontains=q) | Q(phone__icontains=q)
+        )
+
+    users = users.order_by("-date_joined")
+
+    return render(
+        request,
+        "Admin/ad_community.html",
+        {
+            "users": users,
+            "q": q,
+            "role": role,
+            "role_choices": role_choices,  
+        },
+    )
 #Learn
 @guard
 def learn(request):
@@ -179,7 +210,6 @@ def learn(request):
 
         return redirect("adminpanel:learn")
 
-    # GET
     ctx = {
         "learns": Learn.objects.all(),
         "cat_choices": Learn.Category.choices,
@@ -201,7 +231,7 @@ def settings_view(request):
         intent = request.POST.get("intent", "profile")
         u = request.user
 
-        # ---------- Profile update ----------
+        #  Profile update 
         if intent == "profile":
             u.name      = (request.POST.get("name") or "").strip()
             u.phone     = (request.POST.get("phone") or "").strip()
@@ -225,7 +255,7 @@ def settings_view(request):
 
             return redirect("adminpanel:settings")
 
-        # ---------- Password change ----------
+        #  Password change 
         if intent == "password":
             old_pw = request.POST.get("old_password") or ""
             new_pw = request.POST.get("new_password") or ""
@@ -243,9 +273,8 @@ def settings_view(request):
                 messages.error(request, "New passwords do not match.")
                 return redirect("adminpanel:settings")
 
-            # Django validators (if configured) + generic checks
             try:
-                validate_password(new_pw, user=u)  # will no-op if validators not set
+                validate_password(new_pw, user=u)  
             except ValidationError as e:
                 for msg in e.messages:
                     messages.error(request, msg)
@@ -253,13 +282,11 @@ def settings_view(request):
 
             u.set_password(new_pw)
             u.save(update_fields=["password"])
-            update_session_auth_hash(request, u)  # keep user logged in
+            update_session_auth_hash(request, u)  
             messages.success(request, "Password updated successfully.")
             return redirect("adminpanel:settings")
-
-        # Fallback
+      
         messages.error(request, "Unknown action.")
         return redirect("adminpanel:settings")
 
-    # GET
     return render(request, "Admin/ad_settings.html")

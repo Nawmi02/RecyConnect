@@ -163,7 +163,7 @@
           <img src="{% static 'trophy.png' %}" alt="Rewards">
           <span>Rewards</span>
         </a>
-        <a href="{% url 'buyer:notifications' %}">
+        <a href="{% url 'notifications:inbox' %}">
           <img src="{% static 'bell.png' %}" alt="Notifications">
           <span>Notifications</span>
         </a>
@@ -214,7 +214,7 @@
 
       <div class="foot-col">
         <h4>Quick Links</h4>
-        <a href="{% url 'buyer:notifications' %}">Notification</a>
+        <a href="{% url 'notifications:inbox' %}">Notification</a>
         <a href="{% url 'marketplace:buyer' %}">Marketplace</a>
         <a href="{% url 'buyer:education_awareness_b' %}?tab=guides">Learn</a>
         <a href="{% url 'buyer:community' %}">Community</a>
