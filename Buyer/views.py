@@ -11,7 +11,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
-from django.db.models import Q
+from django.db import models
+from django.db.models import Q,F, ExpressionWrapper,DecimalField, Sum
 
 from RecyCon.models import Product
 from Rewards.models import Activity
@@ -36,19 +37,58 @@ def _no_cache(resp):
         resp["Vary"] = (resp["Vary"] + ", Cookie").strip(", ")
     return resp
 
+def _to_decimal(val, default="0"):
+    if isinstance(val, Decimal):
+        return val
+    return Decimal(str(val or default))
+
+
 def _buyer_stats(user):
-    total_weight = Activity.objects.filter(user=user).aggregate(s=Sum("weight_kg"))["s"] or Decimal("0")
+    qs = PickupRequest.objects.filter(requester_id=user.id)
+
+    pending   = qs.filter(status=PickupRequest.Status.PENDING).count()
+    accepted  = qs.filter(status=PickupRequest.Status.ACCEPTED).count()
+    completed = qs.filter(status=PickupRequest.Status.COMPLETED).count()
+    declined  = qs.filter(status=PickupRequest.Status.DECLINED).count()
+
+ 
+    total_pickups = 0 +  completed
+
+    weight_completed = (
+        qs.filter(status=PickupRequest.Status.COMPLETED)
+          .aggregate(s=Sum("weight_kg"))["s"] or Decimal("0")
+    )
+    weight_completed = Decimal(str(weight_completed)).quantize(Decimal("0.001"))
+
+    total_expr = ExpressionWrapper(
+        F("price") * F("weight_kg"),
+        output_field=DecimalField(max_digits=12, decimal_places=2)
+    )
+    earnings_val = (
+        qs.filter(status=PickupRequest.Status.COMPLETED)
+          .aggregate(s=Sum(total_expr))["s"] or Decimal("0")
+    )
+    earnings = Decimal(str(earnings_val)).quantize(Decimal("0.01"))
+
     return {
         "points": user.points,
-        "total_pickups": user.total_pickups,
-        "total_weight_kg": Decimal(total_weight).quantize(Decimal("0.001")),
+        "total_pickups": total_pickups,
+        "total_weight_kg": weight_completed,
         "total_co2_kg": user.total_co2_saved_kg,
+
+        "pending_pickups": pending,
+        "accepted_pickups": accepted,
+        "completed_pickups": completed,
+        "declined_pickups": declined,
+        "total_earnings": earnings,  
     }
 
 @never_cache
 @login_required(login_url="user:login")
 def dashboard(request):
     user = request.user
+    user.refresh_from_db(fields=["points", "total_pickups", "total_co2_saved_kg"])
+
     if getattr(user, "role", None) != "buyer":
         messages.error(request, "Buyer dashboard is only for Buyer accounts.")
         return redirect("/")
@@ -68,8 +108,7 @@ def dashboard(request):
                     raise InvalidOperation
             except Exception:
                 messages.error(request, "Please provide valid numbers for weight and price.")
-                return redirect("buyer:dashboard")   # MUST be buyer
-
+                return redirect("buyer:dashboard")  
             with transaction.atomic():
                 product = Product.objects.create(kind=kind, weight=weight, price=price)
 
@@ -229,6 +268,3 @@ def settings(request):
     return render(request, "Buyer/b_settings.html")
 
 
-@login_required(login_url="user:login")
-def history(request):
-    return render(request, "Buyer/b_history.html")

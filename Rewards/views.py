@@ -1,19 +1,22 @@
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, Tuple
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Badge, UserBadge, RewardItem
-from .services import redeem_reward, ensure_core_badges  
+from .services import redeem_reward, ensure_core_badges
+from Pickup.models import PickupRequest
 
 User = get_user_model()
 
 
+# ----------------------- helpers -----------------------
 def _template_for_role(role: str) -> str:
     role = (role or "").lower()
     if role == "collector":
@@ -40,30 +43,74 @@ def _to_bool(v: Optional[str]) -> bool:
     return str(v).lower() in {"1", "true", "on", "yes"}
 
 
+def _role_pickup_qs(user, role: str):
+    """
+    COMPLETED pickups queryset by role.
+    Household/Buyer -> requester_id
+    Collector       -> collector_id
+    """
+    role = (role or "").lower()
+    if role == "collector":
+        return PickupRequest.objects.filter(
+            collector_id=user.id,
+            status=PickupRequest.Status.COMPLETED,
+        )
+    # default: household/buyer
+    return PickupRequest.objects.filter(
+        requester_id=user.id,
+        status=PickupRequest.Status.COMPLETED,
+    )
+
+
+def _completed_stats_for_role(user, role: str) -> Tuple[int, Decimal]:
+    """
+    Return (completed_count, completed_weight_kg[Decimal('0.000')])
+    """
+    qs = _role_pickup_qs(user, role)
+    completed_count = qs.count()
+    total_weight = qs.aggregate(s=Sum("weight_kg"))["s"] or Decimal("0")
+    try:
+        total_weight = Decimal(str(total_weight)).quantize(Decimal("0.001"))
+    except Exception:
+        total_weight = Decimal("0.000")
+    return completed_count, total_weight
+
+
+# ----------------------- views -----------------------
 @login_required
 def rewards_page(request, role: str):
     template = _template_for_role(role)
 
-
+    # Ensure base badges exist (idempotent)
     ensure_core_badges()
 
     # ---------- POST actions ----------
     if request.method == "POST":
-        action = request.POST.get("action", "").strip()
+        action = (request.POST.get("action") or "").strip()
 
+        # Redeem reward
         if action == "redeem":
-            reward_id = request.POST.get("reward_id")
+            raw_id = (request.POST.get("reward_id") or "").strip()
+            try:
+                reward_id = int(raw_id)
+            except (TypeError, ValueError):
+                messages.error(request, "Invalid reward selection.")
+                return redirect(request.path)
+
             reward = get_object_or_404(RewardItem, pk=reward_id, is_active=True)
             try:
+                # service -> model.Redemption.redeem(...)
                 redeem_reward(user=request.user, reward=reward)
                 messages.success(request, "You will get your reward soon.")
             except ValidationError as e:
                 messages.error(request, e.message)
-            except Exception:
-                messages.error(request, "Redemption failed. Please try again.")
+            except Exception as e:
+                # e.g., SimpleLazyObject/type issues, casting, etc.
+                messages.error(request, f"Redemption failed: {e}")
             return redirect(request.path)
 
-        if action == "admin_save_badge":
+        # Admin: create/update badge
+        elif action == "admin_save_badge":
             if not _is_admin(request.user):
                 messages.error(request, "Unauthorized.")
                 return redirect(request.path)
@@ -79,8 +126,10 @@ def rewards_page(request, role: str):
             try:
                 if badge_id:
                     badge = get_object_or_404(Badge, pk=badge_id)
-                    badge.code = code or badge.code
-                    badge.name = name or badge.name
+                    if code:
+                        badge.code = code
+                    if name:
+                        badge.name = name
                     badge.description = description
                     badge.emoji = emoji
                     badge.rarity = rarity
@@ -101,7 +150,8 @@ def rewards_page(request, role: str):
                 messages.error(request, "Badge code or name must be unique.")
             return redirect(request.path)
 
-        if action == "admin_save_reward":
+        # Admin: create/update reward item
+        elif action == "admin_save_reward":
             if not _is_admin(request.user):
                 messages.error(request, "Unauthorized.")
                 return redirect(request.path)
@@ -109,14 +159,15 @@ def rewards_page(request, role: str):
             reward_id = request.POST.get("reward_id")
             title = (request.POST.get("title") or "").strip()
             cost_points = _to_int(request.POST.get("cost_points"), 0) or 0
-            stock = _to_int(request.POST.get("stock"), None)
+            stock = _to_int(request.POST.get("stock"), None)  # None => unlimited
             is_active = _to_bool(request.POST.get("is_active"))
             image = request.FILES.get("image")
 
             try:
                 if reward_id:
                     r = get_object_or_404(RewardItem, pk=reward_id)
-                    r.title = title or r.title
+                    if title:
+                        r.title = title
                     r.cost_points = cost_points
                     r.stock = stock
                     r.is_active = is_active
@@ -133,22 +184,30 @@ def rewards_page(request, role: str):
                         image=image,
                     )
                     messages.success(request, "Reward created.")
-            except Exception:
-                messages.error(request, "Failed to save reward item.")
+            except Exception as e:
+                messages.error(request, f"Failed to save reward item: {e}")
             return redirect(request.path)
 
-        messages.error(request, "Unknown action.")
-        return redirect(request.path)
+        else:
+            messages.error(request, "Unknown action.")
+            return redirect(request.path)
 
     # ---------- GET: build context ----------
     user = request.user
 
+    # Completed-only stats per role
+    completed_count, completed_weight = _completed_stats_for_role(user, role)
+
     overview = {
         "points": user.points,
-        "total_co2": user.total_co2_saved_kg,
-        "total_pickups": user.total_pickups,
-        "recent_badges": UserBadge.objects.filter(user=user)
-            .select_related("badge").order_by("-awarded_at")[:6],
+        "total_co2": user.total_co2_saved_kg,  # keep as-is if you already maintain this
+        "total_pickups": completed_count,      # ✅ only COMPLETED
+        "total_weight": completed_weight,      # ✅ only COMPLETED (kg)
+        "recent_badges": (
+            UserBadge.objects.filter(user=user)
+            .select_related("badge")
+            .order_by("-awarded_at")[:6]
+        ),
     }
 
     earned_ids = set(
@@ -172,8 +231,10 @@ def rewards_page(request, role: str):
         "items": items,
         "is_admin": _is_admin(user),
         "admin_badges": all_badges if _is_admin(user) else [],
-        "admin_rewards": RewardItem.objects.all().order_by("-is_active", "cost_points")
-                        if _is_admin(user) else [],
+        "admin_rewards": (
+            RewardItem.objects.all().order_by("-is_active", "cost_points")
+            if _is_admin(user) else []
+        ),
         "rarity_choices": Badge.Rarity.choices,
     }
     return render(request, template, context)

@@ -19,6 +19,7 @@
     --border: #f1f5f9;
     --success: #10b981;
     --success-light: #d1fae5;
+    --success-gradient: linear-gradient(135deg, #10b981, #22c55e);
     --warning: #f59e0b;
     --warning-light: #fef3c7;
     --gradient-primary: linear-gradient(135deg, #0ea5a0, #2563eb);
@@ -301,6 +302,63 @@
     text-align: center;
     border: none;
     position: relative;
+    transition: all 0.4s ease;
+  }
+
+  /* Earned Badge Card - Beautiful Styling */
+  .badge-card.earned {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 1px solid #bbf7d0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .badge-card.earned::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #10b981, #22c55e, #16a34a);
+    border-radius: 20px 20px 0 0;
+  }
+
+  .badge-card.earned::after {
+    content: "✓";
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #10b981, #22c55e);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    animation: pulse 2s infinite;
+  }
+
+  .badge-card.earned .badge-emoji {
+    transform: scale(1.1);
+    filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.3));
+  }
+
+  .badge-card.earned .badge-name {
+    color: #065f46;
+  }
+
+  .badge-card.earned .badge-description {
+    color: #047857;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
   }
 
   .badge-emoji {
@@ -308,6 +366,7 @@
     margin-bottom: 16px;
     display: block;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    transition: all 0.3s ease;
   }
 
   .badge-name {
@@ -315,6 +374,7 @@
     font-weight: 700;
     color: var(--text);
     margin-bottom: 8px;
+    transition: all 0.3s ease;
   }
 
   .badge-description {
@@ -322,6 +382,7 @@
     line-height: 1.5;
     margin-bottom: 16px;
     font-size: 0.95rem;
+    transition: all 0.3s ease;
   }
 
   .badge-status {
@@ -431,7 +492,7 @@
   }
 
   .reward-image {
-    width: 100%;
+    width: 100;
     height: 300px;
     object-fit: cover;
     background: linear-gradient(135deg, #c7f9cc, #a0c4ff);
@@ -583,6 +644,17 @@
     metricCards.forEach((card, index) => {
       card.style.animationDelay = `${index * 0.1}s`;
     });
+
+    // Add hover effects to earned badges
+    const earnedBadges = document.querySelectorAll('.badge-card.earned');
+    earnedBadges.forEach(badge => {
+      badge.addEventListener('mouseenter', () => {
+        badge.style.transform = 'translateY(-8px) scale(1.02)';
+      });
+      badge.addEventListener('mouseleave', () => {
+        badge.style.transform = 'translateY(-4px) scale(1)';
+      });
+    });
   });
 </script>
 
@@ -683,7 +755,7 @@
       
       <div class="badges-grid" style="margin-top: 20px;">
         {% for ub in overview.recent_badges|slice:":2" %}
-          <div class="badge-card">
+          <div class="badge-card earned">
             <span class="badge-emoji">{{ ub.badge.emoji }}</span>
             <h3 class="badge-name">{{ ub.badge.name }}</h3>
             <p class="badge-description">{{ ub.badge.description }}</p>
@@ -709,7 +781,7 @@
   <section id="sec-badges" class="section">
     <div class="badges-grid">
       {% for b in all_badges %}
-        <div class="badge-card">
+        <div class="badge-card {% if b.id in earned_ids %}earned{% endif %}">
           <span class="badge-emoji">{{ b.emoji }}</span>
           <h3 class="badge-name">{{ b.name }}</h3>
           <p class="badge-description">{{ b.description }}</p>
@@ -766,16 +838,16 @@
   </section>
 
   <!-- ============ REWARDS SECTION ============ -->
-   <section id="sec-rewards" class="section">
-  <div class="card" style="padding:16px; margin-bottom:16px;">
-    <div class="card-header">
-      <h2 class="card-title">Reward Store</h2>
-      <div class="points-display">
-        <span>⭐</span>
-        <span>{{ overview.points|default:0 }} points</span>
+  <section id="sec-rewards" class="section">
+    <div class="card" style="padding:16px; margin-bottom:16px;">
+      <div class="card-header">
+        <h2 class="card-title">Reward Store</h2>
+        <div class="points-display">
+          <span>⭐</span>
+          <span>{{ overview.points|default:0 }} points</span>
+        </div>
       </div>
     </div>
-  </div>
     <div class="rewards-grid">
       {% for it in items %}
         <div class="card reward-card">
@@ -792,7 +864,7 @@
               <span>⭐</span>
               <span>{{ it.cost_points }} points</span>
             </div>
-            <form method="post">
+            <form method="post" action="{% url 'rewards:household' %}">
               {% csrf_token %}
               <input type="hidden" name="action" value="redeem">
               <input type="hidden" name="reward_id" value="{{ it.id }}">

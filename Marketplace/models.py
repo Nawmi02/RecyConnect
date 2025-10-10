@@ -34,10 +34,6 @@ class MarketTag(models.Model):
 
 class MarketplaceQuerySet(models.QuerySet):
     def with_seller_info(self):
-        """
-        Annotate lightweight seller fields for list/detail pages.
-        NOTE: Do NOT annotate 'seller_role' because there is a @property with that name.
-        """
         return (
             self.select_related("seller")
                 .annotate(

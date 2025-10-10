@@ -538,7 +538,7 @@
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon">🏆</div>
-          <div class="stat-value">{{ stats.points }}</div>
+            <div class="stat-value">{{ stats.points|default:0 }}</div>
           <div class="stat-label">Reward Points</div>
         </div>
         <div class="stat-card">
@@ -548,12 +548,12 @@
         </div>
         <div class="stat-card">
           <div class="stat-icon">⚖️</div>
-          <div class="stat-value">{{ stats.total_weight_kg }} KG</div>
+            <div class="stat-value">{{ stats.total_weight_kg|default:"0.000" }} KG</div>
           <div class="stat-label">Waste Recycled</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">🌿</div>
-          <div class="stat-value">{{ stats.total_co2_kg }} KG</div>
+            <div class="stat-value">{{ stats.total_co2_kg|default:"0.000" }} KG</div>
           <div class="stat-label">CO₂ Saved</div>
         </div>
       </div>

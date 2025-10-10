@@ -5,6 +5,10 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.db.models import F
+from django.contrib.auth import get_user_model
+
+UserModel = get_user_model()
+
 
 class Activity(models.Model):
     product = models.ForeignKey(
@@ -168,20 +172,28 @@ class Redemption(models.Model):
 
     @classmethod
     def redeem(cls, *, user, reward: RewardItem):
+        if not getattr(user, "pk", None):
+            raise ValidationError("User must be authenticated.")
+
         with transaction.atomic():
-            u = type(user).objects.select_for_update().get(pk=user.pk)
+            u = UserModel.objects.select_for_update().get(pk=user.pk)
             r = RewardItem.objects.select_for_update().get(pk=reward.pk, is_active=True)
 
-            if u.points < r.cost_points:
-                raise ValidationError("Not enough points to redeem.")
-            if r.stock is not None and r.stock <= 0:
-                raise ValidationError("Reward out of stock.")
+            user_points = int(u.points or 0)
+            cost = int(r.cost_points or 0)
+            stock_val = r.stock if r.stock is None else int(r.stock)
 
-            u.points = F("points") - r.cost_points
-            if r.stock is not None:
+            if user_points < cost:
+                raise ValidationError("Not enough points to redeem.")
+            if stock_val is not None and stock_val <= 0:
+                raise ValidationError("Reward out of stock.")
+            
+            u.points = F("points") - cost
+          
+            if stock_val is not None:
                 r.stock = F("stock") - 1
 
             u.save(update_fields=["points"])
-            r.save(update_fields=["stock"] if r.stock is not None else [])
+            r.save()
 
-            return cls.objects.create(user=u, reward=r, points_spent=r.cost_points)
+            return cls.objects.create(user=u, reward=r, points_spent=cost)

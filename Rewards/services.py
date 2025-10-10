@@ -1,4 +1,3 @@
-# services.py
 import re
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
@@ -197,6 +196,7 @@ def log_activity_and_update(*, user: "UserType", product, weight_kg: Decimal) ->
 @transaction.atomic
 def redeem_reward(*, user: "UserType", reward: RewardItem) -> Redemption:
     """User-initiated redemption (atomic + checks handled in model)."""
+    print("[DEBUG] redeem_reward called for user:", user.pk, "reward:", reward.pk)
     return Redemption.redeem(user=user, reward=reward)
 
 

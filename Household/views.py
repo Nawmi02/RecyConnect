@@ -29,40 +29,64 @@ from Education.views import (
     download_video,
 )
 
+
+User = get_user_model()
+
+
+# -------- Helpers --------
 def _no_cache(resp):
     resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp["Pragma"] = "no-cache"
     resp["Expires"] = "0"
-    resp["Vary"] = resp.get("Vary", "")
-    if "cookie" not in resp["Vary"].lower():
-        resp["Vary"] = (resp["Vary"] + ", Cookie").strip(", ")
+    vary_header = resp.get("Vary", "")
+    if "cookie" not in vary_header.lower():
+        resp["Vary"] = (vary_header + ", Cookie").strip(", ")
     return resp
 
-User = get_user_model()
 
 def _stats(user):
-    total_weight = Activity.objects.filter(user=user).aggregate(s=Sum("weight_kg"))["s"] or Decimal("0")
+    completed_product_ids = (
+        PickupRequest.objects
+        .filter(requester_id=user.id)
+        .filter(models.Q(status__iexact="completed") | models.Q(status=PickupRequest.Status.COMPLETED))
+        .values_list("product_id", flat=True)
+        .distinct()
+    )
+    total_weight = (
+        Product.objects.filter(id__in=completed_product_ids)
+        .aggregate(s=Sum("weight"))["s"] or Decimal("0")
+    )
+    if not isinstance(total_weight, Decimal):
+        total_weight = Decimal(total_weight)
+
     return {
         "points": user.points,
         "total_pickups": user.total_pickups,
-        "total_weight_kg": Decimal(total_weight).quantize(Decimal("0.001")),
+        "total_weight_kg": total_weight.quantize(Decimal("0.001")),
         "total_co2_kg": user.total_co2_saved_kg,
     }
 
+
+# -------- Household Dashboard --------
 @never_cache
 @login_required(login_url="user:login")
 def dashboard(request):
     user = request.user
+
+    user.refresh_from_db(fields=["points", "total_pickups", "total_co2_saved_kg"])
+
     if getattr(user, "role", None) != "household":
         messages.error(request, "Household dashboard is only for household accounts.")
         return redirect("/")
 
+    # ---- Create Pickup Request ----
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "request_pickup":
             kind = (request.POST.get("kind") or "").strip()
             wraw = (request.POST.get("weight") or "0").strip()
             praw = (request.POST.get("price") or "0").strip()
+
             try:
                 weight = Decimal(wraw)
                 price = Decimal(praw)
@@ -74,18 +98,28 @@ def dashboard(request):
 
             with transaction.atomic():
                 product = Product.objects.create(kind=kind, weight=weight, price=price)
-                collectors_qs = User.objects.filter(
-                    role="collector", is_approved=True).filter(
-                         Q(collector_product__iexact=kind) 
-                      ).only("id", "collector_product")
+
+                collectors_qs = (
+                    User.objects.filter(role="collector", is_approved=True)
+                    .filter(Q(collector_product__iexact=kind))
+                    .only("id", "collector_product")
+                )
+
                 created = 0
                 for c in collectors_qs:
                     _, ok = PickupRequest.objects.get_or_create(
-                        requester=user, collector=c, product=product,
-                        defaults={"status": PickupRequest.Status.PENDING,
-                                  "kind": kind, "weight_kg": weight, "price": price}
+                        requester=user,
+                        collector=c,
+                        product=product,
+                        defaults={
+                            "status": PickupRequest.Status.PENDING,
+                            "kind": kind,
+                            "weight_kg": weight,
+                            "price": price,
+                        },
                     )
-                    if ok: created += 1
+                    if ok:
+                        created += 1
 
             if created:
                 messages.success(request, f"Pickup request sent to {created} matching collector(s).")
@@ -97,15 +131,18 @@ def dashboard(request):
         return redirect("household:dashboard")
 
     requests_qs = (
-    PickupRequest.objects
-    .filter(requester_id=user.id)
-    .exclude(status=PickupRequest.Status.DECLINED)   
-    .select_related("collector", "product")
-    .order_by("-created_at")[:10]
-)
+        PickupRequest.objects
+        .filter(requester_id=user.id)
+        .exclude(status__iexact="declined")   
+        .select_related("collector", "product")
+        .order_by("-created_at")[:10]
+    )
 
-    ctx = {"stats": _stats(user), "requests": requests_qs}
-    resp = render(request, "Household/h_dash.html", ctx)  
+    ctx = {
+        "stats": _stats(user),
+        "requests": requests_qs,
+    }
+    resp = render(request, "Household/h_dash.html", ctx)
     return _no_cache(resp)
 
 #Community
@@ -249,7 +286,5 @@ def settings(request):
 
     return render(request, "Household/h_settings.html")
 
-@login_required(login_url="user:login")
-def history(request):
-    return render(request, "Household/h_history.html")
+
 

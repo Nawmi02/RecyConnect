@@ -574,6 +574,35 @@
       </button>
     </form>
   </div>
+<!-- Stats Card -->
+    <div class="card">
+      <h3 style="margin: 0 0 20px; font-size: 20px; color: var(--text); display: flex; align-items: center; gap: 10px;">
+        📊 Your Environmental Impact
+      </h3>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">🏆</div>
+            <div class="stat-value">{{ stats.points|default:0 }}</div>
+          <div class="stat-label">Reward Points</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔄</div>
+          <div class="stat-value">{{stats.total_pickups }}</div>
+          <div class="stat-label">Completed Pickups</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⚖️</div>
+            <div class="stat-value">{{ stats.total_weight_kg|default:"0.000" }} KG</div>
+          <div class="stat-label">Waste Recycled</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🌿</div>
+            <div class="stat-value">{{ stats.total_co2_kg|default:"0.000" }} KG</div>
+          <div class="stat-label">CO₂ Saved</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Tab Container -->
   <div class="tab-container">
@@ -642,7 +671,7 @@
               {{ pr.get_kind_label }}
             </td>
             <td>{{ pr.weight_kg }} kg</td>
-            <td>₹{{ pr.price }}</td>
+            <td>৳{{ pr.price }}</td>
             <td>
               {% if pr.collector %}
                 {{ pr.collector.name|default:pr.collector.email }}
@@ -726,8 +755,8 @@
             <td>{{ o.order_no }}</td>
             <td>{{ o.product_name }}</td>
             <td>{{ o.weight_kg }} kg</td>
-            <td>₹{{ o.unit_price }}</td>
-            <td>₹{{ o.total_price }}</td>
+            <td>৳{{ o.unit_price }}</td>
+            <td>৳{{ o.total_price }}</td>
             <td>{{ o.collector.name|default:o.collector.email }}</td>
             <td>
               {% if o.status == 'pending' %}

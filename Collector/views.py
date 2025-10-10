@@ -336,6 +336,3 @@ def settings(request):
     return render(request, "Collector/c_settings.html", context)
 
 
-@login_required(login_url="user:login")
-def history(request):
-    return render(request, "Collector/c_history.html")

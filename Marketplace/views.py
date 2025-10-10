@@ -9,6 +9,7 @@ from decimal import Decimal, InvalidOperation
 from .models import Marketplace, MarketTag,MarketOrder
 
 ADD_ALLOWED_ROLES = {"collector"}
+BUY_ALLOWED_ROLES = {"buyer"}
 
 def _user_can_add(user) -> bool:
     """Only approved Collector may add products."""
@@ -17,6 +18,8 @@ def _user_can_add(user) -> bool:
         and user.role in ADD_ALLOWED_ROLES
         and getattr(user, "is_approved", False)
     )
+def _user_can_buy(user) -> bool:
+    return user.is_authenticated and user.role in BUY_ALLOWED_ROLES
 
 def _template_for_role(role: str) -> str:
     """Return template path based on role."""
@@ -153,14 +156,24 @@ def marketplace_page(request, role: str):
 
 @login_required
 def marketplace_detail(request, pk: int):
-    """Render the detail widget/page for a product."""
     item = get_object_or_404(Marketplace.objects.with_seller_info(), pk=pk)
-    return render(request, "Marketplace/detail_widget.html", {"item": item})
+    return render(
+        request,
+        "Marketplace/detail_widget.html",
+        {
+            "item": item,
+            "can_buy": _user_can_buy(request.user),   
+        },
+    )
 
 
 @login_required
 @transaction.atomic
 def marketplace_buy(request, pk: int):
+    if not _user_can_buy(request.user):
+        messages.error(request, "Only Buyer can place marketplace orders.")
+        return redirect("marketplace:detail", pk=pk)
+
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
 

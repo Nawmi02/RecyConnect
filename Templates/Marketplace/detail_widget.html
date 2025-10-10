@@ -3,7 +3,8 @@
      data-price="{{ item.price|floatformat:'2' }}"
      data-max="{{ item.weight|floatformat:'2' }}"
      data-available="{{ item.is_available|yesno:'true,false' }}"
-     data-title="{{ item.name|escape }}">
+     data-title="{{ item.name|escape }}"
+     data-can-buy="{{ can_buy|yesno:'true,false' }}">
   <style>
     .mp-detail-widget { --primary:#2563eb; --primary-dark:#1d4ed8; --primary-light:#dbeafe;
       --success:#10b981; --success-light:#d1fae5; --error:#ef4444; --error-light:#fee2e2;
@@ -131,7 +132,6 @@
 
           <div class="mpd-seller">
             <div class="mpd-avatar">
-              {# avatar initial safely #}
               {% with nm=item.seller_display_name|default:item.seller_name %}
                 {{ nm|default:"?"|slice:":1"|upper }}
               {% endwith %}
@@ -171,7 +171,9 @@
           <div class="mpd-order">
             <div class="mpd-alert"><strong>Important:</strong> Orders cannot be cancelled after confirmation.</div>
 
-           <form class="mpd-form" method="post" action="{% url 'marketplace:buy' pk=item.id %}">
+            <!-- ✅ Only buyers can submit to buy URL; others -> '#' -->
+            <form class="mpd-form" method="post"
+                  action="{% if can_buy %}{% url 'marketplace:buy' pk=item.id %}{% else %}#{% endif %}">
 
               {% csrf_token %}
               <div class="mpd-row">
@@ -186,7 +188,7 @@
                     max="{{ item.weight|floatformat:'2' }}"
                     placeholder="0.00"
                     class="mpd-input"
-                    {% if not item.is_available %}disabled{% endif %}
+                    {% if not item.is_available or not can_buy %}disabled{% endif %}
                     required
                   />
                   <div class="mpd-hint">Maximum available: {{ item.weight }} kg</div>
@@ -205,8 +207,12 @@
               <div class="mpd-actions">
                 <button type="button" class="mpd-btn mpd-btn-secondary" data-mp-action="back">Cancel</button>
                 <button type="submit" class="mpd-btn mpd-btn-primary" data-mp-order-btn
-                        {% if not item.is_available %}disabled{% endif %}>
-                  Place Order (Cash on Delivery)
+                        {% if not item.is_available or not can_buy %}disabled{% endif %}>
+                  {% if can_buy %}
+                    Place Order (Cash on Delivery)
+                  {% else %}
+                    Only Buyers Can Order
+                  {% endif %}
                 </button>
               </div>
             </form>
@@ -230,6 +236,7 @@
       const maxAvail   = parseFloat(root.dataset.max || '0') || 0;
       const isAvail    = (root.dataset.available || 'false') === 'true';
       const title      = root.dataset.title || 'Product';
+      const canBuy     = (root.dataset.canBuy || 'false') === 'true';
 
       const weightEl = root.querySelector('#mpd-weight-{{ item.id }}');
       const totalEl  = root.querySelector('[data-mp-total]');
@@ -265,9 +272,14 @@
       const form = root.querySelector('form.mpd-form');
       if (form){
         form.addEventListener('submit', (e)=>{
+          // ✅ Non-buyer hard block on client too (in addition to server)
+          if (!canBuy) {
+            e.preventDefault();
+            return;
+          }
           const w = parseFloat(weightEl && weightEl.value || '0') || 0;
           const t = parseFloat(totalEl && totalEl.textContent || '0') || 0;
-          const msg = 
+          const msg =
             `You are about to place an order for:\n\n` +
             `• Product: ${title}\n` +
             `• Weight: ${w.toFixed(2)} kg\n` +
@@ -278,9 +290,18 @@
         });
       }
 
-      if (!isAvail && orderBtn){
-        orderBtn.disabled = true;
-        orderBtn.textContent = 'Item Not Available';
+      // Existing availability guard + buyer guard
+      if (orderBtn){
+        if (!isAvail) {
+          orderBtn.disabled = true;
+          orderBtn.textContent = 'Item Not Available';
+        } else if (!canBuy) {
+          orderBtn.disabled = true;
+          orderBtn.textContent = 'Only Buyers Can Order';
+        }
+      }
+      if (weightEl && (!isAvail || !canBuy)) {
+        weightEl.disabled = true;
       }
     })();
   </script>

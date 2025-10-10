@@ -11,7 +11,6 @@ urlpatterns = [
     path("notifications/", views.notifications, name="notifications"),
     path("profile/", views.profile, name="profile"),
     path("settings/", views.settings, name="settings"),
-    path("history/", views.history, name="history"),
     
     path("education/", views.education_awareness_b, name="education_awareness_b"),
     path("education/<int:pk>/pdf/view/", views.view_guide_pdf, name="view_guide_pdf"),
