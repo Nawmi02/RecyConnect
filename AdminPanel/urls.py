@@ -13,7 +13,6 @@ urlpatterns = [
     path("community/", views.community, name="community"),
     path("users/<int:pk>/", views.user_detail, name="user_detail"),
     path("learn/", views.learn, name="learn"),
-    path("notifications/", views.notifications, name="notifications"),
     path("my-profile/", views.my_profile, name="my_profile"),
     path("settings/", views.settings_view, name="settings"),
 ]
