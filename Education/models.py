@@ -25,8 +25,7 @@ class Tag(models.Model):
         help_text="Select a predefined tag (e.g., Plastic, Recycle, Pollution).",
     )
 
-    def __str__(self):
-        #shows human-readable label 
+    def __str__(self): 
         return self.get_name_display()
 
 
@@ -49,7 +48,6 @@ class Learn(models.Model):
     video_file  = models.FileField(upload_to="guides/videos/", blank=True, null=True)
     quick_text  = models.TextField(blank=True, null=True)
 
-    # only for learn content:
     tags        = models.ManyToManyField(Tag, blank=True, related_name="guides")
 
     created_at  = models.DateTimeField(auto_now_add=True)

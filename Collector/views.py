@@ -60,36 +60,25 @@ def _collector_stats(user):
         "total_co2_kg": est_co2.quantize(Decimal("0.001")),
     }
 
-
-# --- Rewards helper that matches your service signature ---
 def _award_activity_or_fallback(*, user, product, weight_kg: Decimal):
-    """
-    Try Rewards.services.log_activity_and_update(user, product, weight_kg).
-    If the service isn't importable, create an Activity and update user tallies.
-    """
     try:
         from Rewards.services import log_activity_and_update as svc
     except Exception:
         svc = None
 
     if svc:
-        # Service handles: Activity, totals/CO2, points, badges (atomic inside)
         return svc(user=user, product=product, weight_kg=weight_kg)
 
-    # ---- fallback consistent with your Activity model ----
     from Rewards.models import Activity as ActivityModel
 
     act = ActivityModel.objects.create(
         user=user,
         product=product,
         weight_kg=weight_kg,
-        # co2_saved_kg auto-computed in Activity.save()
     )
-    # After save(), co2_saved_kg is ready. Update user with F-expressions.
     user.__class__.objects.filter(pk=user.pk).update(
         total_co2_saved_kg=F("total_co2_saved_kg") + act.co2_saved_kg,
         total_pickups=F("total_pickups") + 1,
-        # mirror service rule (int(co2) * 2):
         points=F("points") + (int(act.co2_saved_kg) * 2),
     )
     return act
@@ -137,11 +126,9 @@ def dashboard(request):
                     pr.status = PickupRequest.Status.COMPLETED
                     pr.save(update_fields=["status", "updated_at"])
 
-                    # Requester (household/buyer) earns
                     _award_activity_or_fallback(
                         user=pr.requester, product=pr.product, weight_kg=pr.weight_kg
                     )
-                    # Collector also earns
                     _award_activity_or_fallback(
                         user=pr.collector, product=pr.product, weight_kg=pr.weight_kg
                     )
@@ -163,7 +150,7 @@ def dashboard(request):
         messages.error(request, "Unknown action.")
         return redirect(request.path)
 
-    # ---- GET: lists ----
+    # lists 
     qs_pending = (
         PickupRequest.objects.filter(
             collector_id=user.id, status=PickupRequest.Status.PENDING
@@ -253,7 +240,6 @@ def community(request):
     """
     users = User.objects.exclude(role='admin').exclude(id=request.user.id).select_related()
 
-    # add rating info for collectors
     for u in users:
         if getattr(u, "role", "") == 'collector':
             ratings = CollectorRating.objects.filter(collector=u)
@@ -266,17 +252,12 @@ def community(request):
 
     return render(request, "Collector/c_community.html", {"users": users})
 
-
-@login_required(login_url="user:login")
-def notifications(request):
-    return render(request, "Collector/c_notifications.html")
-
-
+#Profile
 @login_required(login_url="user:login")
 def profile(request):
     return render(request, "Collector/c_profile.html")
 
-
+#Settings
 @login_required(login_url="user:login")
 def settings(request):
     user = request.user

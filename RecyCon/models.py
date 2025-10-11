@@ -50,13 +50,13 @@ class Product(models.Model):
     class Meta:
         ordering = ("kind",)
 
-    # ---- helpers ----
+    # helpers
     @property
     def co2_per_kg(self) -> Decimal:
         """Fixed CO2 factor for this product kind."""
         return self.CO2_PER_KG[Product.Kind(self.kind)]
 
     def co2_saved_for_weight(self, weight: Decimal | None = None) -> Decimal:
-        """CO2 saved = weight * factor (Decimal-সেফ)"""
+        """CO2 saved = weight * factor (Decimal)"""
         w = Decimal(weight if weight is not None else self.weight or 0)
         return (w * self.co2_per_kg).quantize(Decimal("0.001"))

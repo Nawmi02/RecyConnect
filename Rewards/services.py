@@ -17,7 +17,6 @@ else:
     UserType = Any
 
 
-#  Ensure + helpers 
 def _ensure_badge(
     code: str, *, name: str, description: str, emoji: str, rarity: str, points_bonus: int
 ) -> Badge:
@@ -35,10 +34,7 @@ def _ensure_badge(
 
 
 def _award_badge(user: "UserType", badge: Badge) -> bool:
-    """
-    Award if not already earned; add bonus points once.
-    Returns True only when newly created.
-    """
+   
     created = UserBadge.objects.get_or_create(user_id=user.pk, badge=badge)[1]
     if created and badge.points_bonus:
         UserModel.objects.filter(pk=user.pk).update(points=F("points") + badge.points_bonus)
@@ -116,7 +112,6 @@ def award_co2_50(user: "UserType") -> None:
 
 
 # Dynamic rules from DB (admin-created) 
-# Accept codes like: pickups_20, pickups_50, CO2_50, CO2_200 (case-insensitive)
 _PICKUP_RE = re.compile(r"^(pickups)_(\d+)$", re.IGNORECASE)
 _CO2_RE    = re.compile(r"^(co2)_(\d+)$",      re.IGNORECASE)
 

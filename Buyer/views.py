@@ -83,6 +83,7 @@ def _buyer_stats(user):
         "total_earnings": earnings,  
     }
 
+#Dashboard
 @never_cache
 @login_required(login_url="user:login")
 def dashboard(request):
@@ -93,7 +94,7 @@ def dashboard(request):
         messages.error(request, "Buyer dashboard is only for Buyer accounts.")
         return redirect("/")
 
-    # ---------- Create Pickup (POST) ----------
+    #  Create Pickup (POST) 
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "request_pickup":
@@ -144,8 +145,7 @@ def dashboard(request):
 
         messages.error(request, "Unknown form submission.")
         return redirect("buyer:dashboard")
-
-    #  Lists 
+ 
     pickup_qs = (
        PickupRequest.objects
        .filter(requester_id=user.id)
@@ -176,6 +176,7 @@ def dashboard(request):
     resp = render(request, "Buyer/b_dash.html", ctx)
     return _no_cache(resp)
 
+#Community
 @login_required(login_url="user:login")
 def community(request):
     users = User.objects.exclude(role="admin").exclude(id=request.user.id)
@@ -212,17 +213,12 @@ def rate_collector(request, user_id):
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
 
-
-@login_required(login_url="user:login")
-def notifications(request):
-    return render(request, "Buyer/b_notifications.html")
-
-
+#Profile
 @login_required(login_url="user:login")
 def profile(request):
     return render(request, "Buyer/b_profile.html")
 
-
+#Settings
 @login_required(login_url="user:login")
 def settings(request):
     user = request.user

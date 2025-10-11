@@ -8,7 +8,6 @@ urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
     path('community/', views.community, name='community'),
     path('rate-collector/<int:user_id>/', views.rate_collector, name='rate_collector'),
-    path("notifications/", views.notifications, name="notifications"),
     path("profile/", views.profile, name="profile"),
     path("settings/", views.settings, name="settings"),
     

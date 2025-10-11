@@ -16,7 +16,7 @@ from Pickup.models import PickupRequest
 User = get_user_model()
 
 
-# ----------------------- helpers -----------------------
+# helpers
 def _template_for_role(role: str) -> str:
     role = (role or "").lower()
     if role == "collector":
@@ -44,18 +44,13 @@ def _to_bool(v: Optional[str]) -> bool:
 
 
 def _role_pickup_qs(user, role: str):
-    """
-    COMPLETED pickups queryset by role.
-    Household/Buyer -> requester_id
-    Collector       -> collector_id
-    """
+    
     role = (role or "").lower()
     if role == "collector":
         return PickupRequest.objects.filter(
             collector_id=user.id,
             status=PickupRequest.Status.COMPLETED,
         )
-    # default: household/buyer
     return PickupRequest.objects.filter(
         requester_id=user.id,
         status=PickupRequest.Status.COMPLETED,
@@ -63,9 +58,6 @@ def _role_pickup_qs(user, role: str):
 
 
 def _completed_stats_for_role(user, role: str) -> Tuple[int, Decimal]:
-    """
-    Return (completed_count, completed_weight_kg[Decimal('0.000')])
-    """
     qs = _role_pickup_qs(user, role)
     completed_count = qs.count()
     total_weight = qs.aggregate(s=Sum("weight_kg"))["s"] or Decimal("0")
@@ -76,15 +68,13 @@ def _completed_stats_for_role(user, role: str) -> Tuple[int, Decimal]:
     return completed_count, total_weight
 
 
-# ----------------------- views -----------------------
 @login_required
 def rewards_page(request, role: str):
     template = _template_for_role(role)
 
-    # Ensure base badges exist (idempotent)
     ensure_core_badges()
 
-    # ---------- POST actions ----------
+    # POST actions 
     if request.method == "POST":
         action = (request.POST.get("action") or "").strip()
 
@@ -99,13 +89,11 @@ def rewards_page(request, role: str):
 
             reward = get_object_or_404(RewardItem, pk=reward_id, is_active=True)
             try:
-                # service -> model.Redemption.redeem(...)
                 redeem_reward(user=request.user, reward=reward)
                 messages.success(request, "You will get your reward soon.")
             except ValidationError as e:
                 messages.error(request, e.message)
             except Exception as e:
-                # e.g., SimpleLazyObject/type issues, casting, etc.
                 messages.error(request, f"Redemption failed: {e}")
             return redirect(request.path)
 
@@ -159,7 +147,7 @@ def rewards_page(request, role: str):
             reward_id = request.POST.get("reward_id")
             title = (request.POST.get("title") or "").strip()
             cost_points = _to_int(request.POST.get("cost_points"), 0) or 0
-            stock = _to_int(request.POST.get("stock"), None)  # None => unlimited
+            stock = _to_int(request.POST.get("stock"), None)  
             is_active = _to_bool(request.POST.get("is_active"))
             image = request.FILES.get("image")
 
@@ -192,7 +180,6 @@ def rewards_page(request, role: str):
             messages.error(request, "Unknown action.")
             return redirect(request.path)
 
-    # ---------- GET: build context ----------
     user = request.user
 
     # Completed-only stats per role
@@ -200,9 +187,9 @@ def rewards_page(request, role: str):
 
     overview = {
         "points": user.points,
-        "total_co2": user.total_co2_saved_kg,  # keep as-is if you already maintain this
-        "total_pickups": completed_count,      # ✅ only COMPLETED
-        "total_weight": completed_weight,      # ✅ only COMPLETED (kg)
+        "total_co2": user.total_co2_saved_kg,  
+        "total_pickups": completed_count,      
+        "total_weight": completed_weight,      
         "recent_badges": (
             UserBadge.objects.filter(user=user)
             .select_related("badge")

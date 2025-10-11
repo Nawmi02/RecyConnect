@@ -114,7 +114,6 @@ def marketplace_page(request, role: str):
     minrate = (request.GET.get("min_rating") or "").strip()
     order   = (request.GET.get("order") or "").strip()  
 
-    # Admin can see all items
     qs = Marketplace.objects.with_seller_info()
     if role != "admin":
         qs = qs.filter(is_available=True)
@@ -195,11 +194,10 @@ def marketplace_buy(request, pk: int):
 
     total_price = (item.price * req_weight).quantize(Decimal("0.01"))
 
-    # 1) Decrease stock atomically
     Marketplace.objects.filter(pk=item.pk).update(weight=F("weight") - req_weight)
     item.refresh_from_db()
 
-    # 2) CREATE ORDER ✅
+    # Create order
     order = MarketOrder.objects.create(
         order_no=MarketOrder.new_order_no(),
         buyer=request.user,
@@ -212,7 +210,7 @@ def marketplace_buy(request, pk: int):
         status=MarketOrder.Status.PENDING,
     )
 
-    # 3) Sold-out toggle
+    # 3) Sold-out
     from decimal import Decimal as D
     if item.weight <= D("0"):
         item.is_available = False

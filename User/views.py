@@ -3,10 +3,17 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from decimal import Decimal, InvalidOperation
+from django.db import transaction, models
+from django.db.models import Sum
+from Pickup.models import PickupRequest
+from RecyCon.models import Product
+from Household import views 
+from Buyer import views 
+from Collector import views 
 
 User = get_user_model()
 
-# Where to send normal users after login
 ROLE_REDIRECTS = {
     "household": "user:dash_household",
     "buyer":     "user:dash_buyer",
@@ -14,11 +21,11 @@ ROLE_REDIRECTS = {
     "collector": "user:dash_collector",
 }
 
-# Superuser/staff land here (AdminPanel app, namespaced)
+# Superuser/staff land 
 ADMIN_PANEL_NAME = "adminpanel:dashboard"
 
 
-# ---------------- Register ----------------
+#Register
 def register_view(request):
     if request.method == "POST":
         email = (request.POST.get("email") or "").strip().lower()
@@ -52,14 +59,13 @@ def register_view(request):
             )
             return redirect("register")
 
-        # create inactive user (awaiting admin approval)
         user = User(email=email, role=role, is_active=False, is_approved=False)
         user.set_password(password1)
         if id_image:
             user.id_card_image = id_image
 
         try:
-            user.full_clean()  # field validators + model.clean()
+            user.full_clean()  
             user.save()
         except ValidationError as e:
             for field, errs in e.message_dict.items():
@@ -74,11 +80,10 @@ def register_view(request):
         )
         return redirect("user:login")
 
-    # GET
     return render(request, "register.html")
 
 
-# ---------------- Login ----------------
+#Login 
 def login_view(request):
     if request.method == "POST":
         email = (request.POST.get("email") or "").strip().lower()
@@ -86,22 +91,22 @@ def login_view(request):
 
         if not email or not password:
             messages.error(request, "Email and password are required.")
-            return redirect("login")
+            return redirect("user:login")
 
         if len(password) < 8:
             messages.error(request, "Password must be at least 8 characters.")
-            return redirect("login")
+            return redirect("user:login")
 
-        # authenticate uses USERNAME_FIELD -> pass email as 'username'
+        # authenticate uses USERNAME_FIELD 
         user = authenticate(request, username=email, password=password)
 
         if not user:
             messages.error(request, "Invalid email or password.")
-            return redirect("login")
+            return redirect("user:login")
 
         if not getattr(user, "is_active", True) or not getattr(user, "is_approved", True):
             messages.warning(request, "Your account is not approved yet.")
-            return redirect("login")
+            return redirect("user:login")
 
         login(request, user)
 
@@ -111,12 +116,11 @@ def login_view(request):
 
         # normal users -> role dashboards
         return redirect(ROLE_REDIRECTS.get(user.role, ADMIN_PANEL_NAME))
-
-    # GET
+    
     return render(request, "login.html")
 
 
-# ---------------- Password change (modal POST) ----------------
+# Password change (modal POST)
 def set_password_view(request):
     if request.method != "POST":
         return redirect("user:login")
@@ -148,14 +152,13 @@ def set_password_view(request):
     messages.success(request, "Password changed successfully. Please log in.")
     return redirect("user:login")
 
-
-# ---------------- Logout ----------------
+# Logout
 def logout_view(request):
     logout(request)
     return redirect("user:login")
 
 
-# ---------------- Role guard ----------------
+#  Role guard 
 def role_required(allowed_roles=()):
     def decorator(view_func):
         @login_required(login_url="user:login")
@@ -170,20 +173,19 @@ def role_required(allowed_roles=()):
         return _wrapped
     return decorator
 
-
-# ---------------- Dashboards ----------------
-@role_required(("household",))
+#Dashboards
+@role_required("household")
 def household_dashboard(request):
-    return render(request, "Household/h_dash.html", {"user": request.user})
+    return redirect("household:dashboard")
 
 @role_required(("buyer",))
 def buyer_dashboard(request):
-    return render(request, "Buyer/b_dash.html", {"user": request.user})
+    return redirect("buyer:dashboard")
 
 @role_required(("recycler",))
 def recycler_dashboard(request):
-    return render(request, "Buyer/b_dash.html", {"user": request.user}) 
+    return redirect("buyer:dashboard")
 
 @role_required(("collector",))
 def collector_dashboard(request):
-    return render(request, "Collector/c_dash.html", {"user": request.user})
+   return redirect("collector:dashboard")

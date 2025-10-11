@@ -51,17 +51,17 @@ class Marketplace(models.Model):
         E_WASTE = "ewaste",  "E-waste"  
         GLASS   = "glass",   "Glass"
 
-    # Seller: must be approved Collector / Buyer / Recycler
+    # Seller: must be approved  Buyer / Recycler
     seller = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="market_listings",
         null=True, blank=True,
         limit_choices_to={
-            "role__in": ["collector", "buyer", "recycler"],
+            "role__in": [ "buyer", "recycler"],
             "is_approved": True,
         },
-        help_text="Seller must be an approved Collector/Buyer/Recycler.",
+        help_text="Seller must be an approved Buyer/Recycler.",
     )
 
     # Product info
@@ -71,8 +71,8 @@ class Marketplace(models.Model):
     is_available = models.BooleanField(default=True)
     description = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=200)
-    weight = models.DecimalField(max_digits=8, decimal_places=2)  # available stock (kg)
-    price  = models.DecimalField(max_digits=10, decimal_places=2) # price per kg (BDT)
+    weight = models.DecimalField(max_digits=8, decimal_places=2)  
+    price  = models.DecimalField(max_digits=10, decimal_places=2) 
     tags   = models.ManyToManyField(MarketTag, blank=True, related_name="items")
     product_image = models.ImageField(
         upload_to="marketplace/products/",
@@ -89,13 +89,12 @@ class Marketplace(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} — {self.get_product_type_display()}"
-
-    # ✅ Validation & seller helpers belong to Marketplace (not MarketOrder)
+    
     def clean(self):
         super().clean()
         if self.seller:
-            if self.seller.role not in ("collector", "buyer", "recycler"):
-                raise ValidationError({"seller": "Seller must be Collector/Buyer/Recycler."})
+            if self.seller.role not in ( "buyer", "recycler"):
+                raise ValidationError({"seller": "Seller must be Buyer/Recycler."})
             if not self.seller.is_approved:
                 raise ValidationError({"seller": "Seller must be approved."})
 

@@ -8,7 +8,6 @@ from django.db.models import Avg, Count
 from urllib.parse import urlparse
 from decimal import Decimal, ROUND_HALF_UP
 
-
 # Manager 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -21,7 +20,6 @@ class UserManager(BaseUserManager):
 
         email = self.normalize_email(email)
 
-        # sensible defaults
         extra_fields.setdefault("role", extra_fields.get("role") or "household")
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
@@ -66,7 +64,7 @@ class User(AbstractBaseUser):
     password = models.CharField(max_length=128)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
-    # collector-specific choice (optional at registration)
+    # collector only (optional at registration)
     collector_product = models.CharField(
         max_length=12,
         choices=ProductKind.choices,
@@ -107,7 +105,7 @@ class User(AbstractBaseUser):
 
     date_joined = models.DateTimeField(default=timezone.now)
 
-    # Collector / Recycling Centre proof (required at registration for those roles)
+    # Collector / Recycling Centre proof (needed for registration)
     id_card_image = models.ImageField(
         upload_to="user_ids/%Y/%m/",
         blank=True, null=True,
@@ -205,7 +203,7 @@ class User(AbstractBaseUser):
         ordering = ("-date_joined",)
 
 
-# === Rating model: ANY user can rate a COLLECTOR (no self-rating) ===
+# Rating model: ANY user can rate a COLLECTOR (no self-rating)
 class CollectorRating(models.Model):
     """
     One rater (any role) -> one Collector rating (0..5).
@@ -214,13 +212,12 @@ class CollectorRating(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="received_ratings",
-        limit_choices_to={"role": "collector"},  # target must be collector
+        limit_choices_to={"role": "collector"},  
     )
     rater = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="given_ratings",
-        # NOTE: no role limit; ANY user can rate
     )
     stars = models.PositiveSmallIntegerField(help_text="0–5")
     comment = models.TextField(blank=True)
@@ -245,7 +242,6 @@ class CollectorRating(models.Model):
         errors = {}
         if self.collector_id == self.rater_id:
             errors["collector"] = "You cannot rate yourself."
-        # runtime validation for roles (defensive)
         if getattr(self.collector, "role", None) != "collector":
             errors["collector"] = "Target user must be a Collector."
         if not (0 <= int(self.stars) <= 5):
@@ -254,7 +250,7 @@ class CollectorRating(models.Model):
             raise ValidationError(errors)
 
 
-# === Signals: keep User.average_rating & ratings_count in sync ===
+# Signals: keep User.average_rating & ratings_count in sync 
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 

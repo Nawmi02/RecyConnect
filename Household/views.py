@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from decimal import Decimal, InvalidOperation
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Sum, Q
 
 from django.db import models 
 from User.models import User, CollectorRating
@@ -29,11 +29,8 @@ from Education.views import (
     download_video,
 )
 
-
 User = get_user_model()
 
-
-# -------- Helpers --------
 def _no_cache(resp):
     resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp["Pragma"] = "no-cache"
@@ -45,29 +42,28 @@ def _no_cache(resp):
 
 
 def _stats(user):
-    completed_product_ids = (
+    completed_qs = (
         PickupRequest.objects
         .filter(requester_id=user.id)
-        .filter(models.Q(status__iexact="completed") | models.Q(status=PickupRequest.Status.COMPLETED))
-        .values_list("product_id", flat=True)
-        .distinct()
+        .filter(Q(status__iexact="completed") | Q(status=PickupRequest.Status.COMPLETED))
     )
-    total_weight = (
-        Product.objects.filter(id__in=completed_product_ids)
-        .aggregate(s=Sum("weight"))["s"] or Decimal("0")
-    )
-    if not isinstance(total_weight, Decimal):
-        total_weight = Decimal(total_weight)
+
+    completed_count = completed_qs.count()
+
+    total_weight = completed_qs.aggregate(s=Sum("weight_kg"))["s"] or Decimal("0")
+    try:
+        total_weight = Decimal(str(total_weight)).quantize(Decimal("0.001"))
+    except Exception:
+        total_weight = Decimal("0.000")
 
     return {
         "points": user.points,
-        "total_pickups": user.total_pickups,
-        "total_weight_kg": total_weight.quantize(Decimal("0.001")),
+        "total_pickups": completed_count,   
+        "total_weight_kg": total_weight,
         "total_co2_kg": user.total_co2_saved_kg,
     }
 
-
-# -------- Household Dashboard --------
+# Dashboard 
 @never_cache
 @login_required(login_url="user:login")
 def dashboard(request):
@@ -79,7 +75,7 @@ def dashboard(request):
         messages.error(request, "Household dashboard is only for household accounts.")
         return redirect("/")
 
-    # ---- Create Pickup Request ----
+    # Create Pickup Request 
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "request_pickup":
@@ -148,17 +144,14 @@ def dashboard(request):
 #Community
 @login_required(login_url="user:login")
 def community(request):
-    # Get all users except admin and current user
     users = User.objects.exclude(
         role='admin'
     ).exclude(
         id=request.user.id
     ).select_related()
     
-    # Add average rating and ratings count to each user
     for user in users:
         if user.role == 'collector':
-            # Calculate average rating and count
             ratings = CollectorRating.objects.filter(collector=user)
             if ratings.exists():
                 user.average_rating = ratings.aggregate(avg=models.Avg('stars'))['avg']
@@ -185,7 +178,7 @@ def rate_collector(request, user_id):
         
         collector = get_object_or_404(User, id=user_id, role='collector')
         
-        # Check if user already rated this collector
+        # Check if user already rated 
         existing_rating = CollectorRating.objects.filter(
             rater=request.user,
             collector=collector
@@ -202,8 +195,7 @@ def rate_collector(request, user_id):
                 stars=rating_value
             )
             message = "Rating submitted successfully!"
-        
-        # Recompute the collector's rating
+      
         collector.recompute_rating()
         
         return JsonResponse({
@@ -218,11 +210,6 @@ def rate_collector(request, user_id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
-
-@login_required(login_url="user:login")
-def notifications(request):
-    return render(request, "Household/h_notifications.html")
-
 #Profile
 @login_required(login_url="user:login")
 def profile(request):
@@ -236,7 +223,7 @@ def settings(request):
     if request.method == "POST":
         form_type = request.POST.get("form_type")
 
-        # -------- Profile Update --------
+        #  Profile Update 
         if form_type == "profile":
             user.name = request.POST.get("name", "").strip()
             user.phone = request.POST.get("phone", "").strip()
@@ -246,7 +233,6 @@ def settings(request):
             user.instagram = request.POST.get("instagram", "").strip()
             user.twitter = request.POST.get("twitter", "").strip()
 
-            # File upload (optional)
             if request.FILES.get("profile_image"):
                 user.profile_image = request.FILES["profile_image"]
 
@@ -261,7 +247,7 @@ def settings(request):
                     for msg in msgs:
                         messages.error(request, f"{field}: {msg}")
 
-        # -------- Password Change --------
+        # Password Change 
         elif form_type == "password":
             old = request.POST.get("old_password", "")
             new = request.POST.get("new_password", "")
@@ -276,7 +262,6 @@ def settings(request):
             else:
                 user.set_password(new)
                 user.save()
-                # keep the user logged in after password change
                 update_session_auth_hash(request, user)
                 messages.success(request, "Password updated successfully.")
                 return redirect("household:settings")

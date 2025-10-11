@@ -82,7 +82,7 @@ def education_awareness_b(request):
 
 
 
-# ---------- Guides/Articles ----------
+#  Guides/Articles 
 def view_guide_pdf(request, pk):
     guide = get_object_or_404(Learn, pk=pk, category__in=[Learn.Category.GUIDELINE, Learn.Category.ARTICLE])
     if not guide.pdf_file:
@@ -105,7 +105,7 @@ def download_guide_pdf(request, pk):
     return FileResponse(guide.pdf_file.open("rb"), as_attachment=True, filename=filename)
 
 
-# ---------- Videos ----------
+# Videos 
 def view_video(request, pk):
     video = get_object_or_404(Learn, pk=pk, category=Learn.Category.VIDEO)
     if not video.video_file:

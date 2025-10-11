@@ -7,7 +7,6 @@ urlpatterns = [
     path("", views.dashboard, name="dashboard"),            
     path("dashboard/", views.dashboard, name="dashboard"),
     path("community/", views.community, name="community"),
-    path("notifications/", views.notifications, name="notifications"),
     path("profile/", views.profile, name="profile"),
     path("settings/", views.settings, name="settings"),
     

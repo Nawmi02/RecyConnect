@@ -24,19 +24,19 @@ def staff_or_super(u):
 
 guard = user_passes_test(staff_or_super, login_url="user:login")  
 
-# Dashboard (now passes pending_users) 
+# Dashboard 
 @guard
 def dashboard(request):
     pending = User.objects.filter(is_approved=False).order_by("-date_joined")
     return render(request, "Admin/ad_dashboard.html", {"pending_users": pending})
 
-#  Approvals list (optional separate page) 
+#  Approvals list 
 @guard
 def approvals(request):
     pending = User.objects.filter(is_approved=False).order_by("-date_joined")
     return render(request, "Admin/approvals.html", {"pending_users": pending})
 
-# Approve a user + send mail 
+# Approve & send mail 
 @guard
 @transaction.atomic
 def approve_user(request, pk):
@@ -50,7 +50,6 @@ def approve_user(request, pk):
         messages.info(request, "This account is already approved.")
         return redirect("adminpanel:dashboard")
 
-    # Approve + activate
     target.is_approved = True
     target.is_active = True
     target.approved_at = timezone.now()
@@ -61,7 +60,7 @@ def approve_user(request, pk):
     messages.success(request, f"Approved. A confirmation email will be sent to {target.email}.")
     return redirect("adminpanel:dashboard")
 
-# Decline a user (simple: leave inactive & not approved) 
+# Decline a user 
 @guard
 @transaction.atomic
 def decline_user(request, pk):
@@ -76,7 +75,7 @@ def decline_user(request, pk):
     messages.success(request, f"Declined {target.email}.")
     return redirect("adminpanel:dashboard")
 
-# Create admin + send mail
+# Create admin & send mail
 @guard
 @transaction.atomic
 def create_admin(request):
@@ -133,7 +132,6 @@ def community(request):
             ("admin", "Admin"),
         ]
 
-    # role filter
     valid_codes = {c for c, _ in role_choices}
     if role and role in valid_codes:
         users = users.filter(role=role)
@@ -156,6 +154,7 @@ def community(request):
             "role_choices": role_choices,  
         },
     )
+
 #Learn
 @guard
 def learn(request):
@@ -216,7 +215,7 @@ def learn(request):
         "tag_opts": Tag.Choices.choices,
     }
     return render(request, "Admin/ad_learn.html", ctx)
-
+#profile
 @guard
 def notifications(request):return render(request, "Admin/ad_notifications.html")
 @guard
