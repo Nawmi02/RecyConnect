@@ -8,6 +8,24 @@
     <p class="hc-subtitle">Connect with households, buyers, and collectors in your area</p>
   </div>
 
+  <!-- Search Box -->
+  <div class="hc-search-container">
+    <form method="GET" action="" class="hc-search-form">
+      <div class="hc-search-group">
+        <input 
+          type="text" 
+          name="q" 
+          value="{{ search_query }}" 
+          placeholder="Search by name or email..." 
+          class="hc-search-input"
+        >
+        <button type="submit" class="hc-search-btn">
+          Search
+        </button>
+      </div>
+    </form>
+  </div>
+
   <div class="hc-filters">
     <div class="hc-filter-group">
       <label class="hc-filter-label">Filter by Role:</label>
@@ -21,6 +39,7 @@
     </div>
   </div>
 
+  <!-- Rest of your existing code remains exactly the same -->
   <div class="hc-grid" id="communityGrid">
     {% for user in users %}
       <div class="hc-card" data-role="{{ user.role }}">
@@ -161,6 +180,41 @@
   color: #6b7280;
   font-size: 1.1rem;
   margin: 0;
+}
+
+/* ===== Search Box ===== */
+.hc-search-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.hc-search-form {
+  width: 100%;
+  max-width: 500px;
+}
+
+.hc-search-group {
+  display: flex;
+  gap: 8px;
+}
+
+.hc-search-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.hc-search-btn {
+  padding: 12px 24px;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
 }
 
 /* ===== Filters ===== */

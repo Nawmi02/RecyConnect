@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Q, Avg
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
 
@@ -231,26 +231,42 @@ def dashboard(request):
     resp = render(request, "Collector/c_dash.html", ctx)
     return _no_cache(resp)
 
-
 #Community
 @login_required(login_url="user:login")
 def community(request):
     """
-    Community view for Collector - shows all users except admin and current user
+    Community view for Collector - shows all users except admin and current user,
+    with search support (by name or email).
     """
+    search_query = (request.GET.get("q") or "").strip()
+
+    # Base queryset
     users = User.objects.exclude(role='admin').exclude(id=request.user.id).select_related()
 
+    # Apply search if query provided
+    if search_query:
+        users = users.filter(
+            Q(name__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+
+    # Add ratings data for collectors
     for u in users:
         if getattr(u, "role", "") == 'collector':
             ratings = CollectorRating.objects.filter(collector=u)
             if ratings.exists():
-                u.average_rating = ratings.aggregate(avg=models.Avg('stars'))['avg']
+                agg = ratings.aggregate(avg=Avg('stars'))
+                u.average_rating = float(agg.get('avg') or 0.0)
                 u.ratings_count = ratings.count()
             else:
                 u.average_rating = 0.0
                 u.ratings_count = 0
 
-    return render(request, "Collector/c_community.html", {"users": users})
+    return render(
+        request,
+        "Collector/c_community.html",
+        {"users": users, "search_query": search_query}
+    )
 
 #Profile
 @login_required(login_url="user:login")

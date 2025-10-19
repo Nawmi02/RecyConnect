@@ -141,15 +141,22 @@ def dashboard(request):
     resp = render(request, "Household/h_dash.html", ctx)
     return _no_cache(resp)
 
-#Community
+# Community
 @login_required(login_url="user:login")
 def community(request):
-    users = User.objects.exclude(
-        role='admin'
-    ).exclude(
-        id=request.user.id
-    ).select_related()
-    
+    search_query = request.GET.get("q", "").strip()
+
+    # Base queryset
+    users = User.objects.exclude(role='admin').exclude(id=request.user.id).select_related()
+
+    # Apply search by name or email
+    if search_query:
+        users = users.filter(
+            models.Q(name__icontains=search_query) |
+            models.Q(email__icontains=search_query)
+        )
+
+    # Compute average ratings for collectors
     for user in users:
         if user.role == 'collector':
             ratings = CollectorRating.objects.filter(collector=user)
@@ -159,9 +166,10 @@ def community(request):
             else:
                 user.average_rating = 0.0
                 user.ratings_count = 0
-    
+
     context = {
-        'users': users
+        'users': users,
+        'search_query': search_query,
     }
     return render(request, "Household/h_community.html", context)
 

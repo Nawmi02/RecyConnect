@@ -8,6 +8,24 @@
     <p class="cc-subtitle">Connect with households, buyers, and other collectors in your area</p>
   </div>
 
+  <!-- Search Box -->
+  <div class="cc-search-container">
+    <form method="GET" action="" class="cc-search-form">
+      <div class="cc-search-group">
+        <input 
+          type="text" 
+          name="q" 
+          value="{{ search_query }}" 
+          placeholder="Search by name or email..." 
+          class="cc-search-input"
+        >
+        <button type="submit" class="cc-search-btn">
+          Search
+        </button>
+      </div>
+    </form>
+  </div>
+
   <div class="cc-filters">
     <div class="cc-filter-group">
       <label class="cc-filter-label">Filter by Role:</label>
@@ -137,6 +155,41 @@
   color: #6b7280;
   font-size: 1.1rem;
   margin: 0;
+}
+
+/* ===== Search Box ===== */
+.cc-search-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.cc-search-form {
+  width: 100%;
+  max-width: 500px;
+}
+
+.cc-search-group {
+  display: flex;
+  gap: 8px;
+}
+
+.cc-search-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.cc-search-btn {
+  padding: 12px 24px;
+  background: #f59e0b; /* Collector amber color */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
 }
 
 /* ===== Filters ===== */

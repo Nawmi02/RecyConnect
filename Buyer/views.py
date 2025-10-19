@@ -176,18 +176,39 @@ def dashboard(request):
     resp = render(request, "Buyer/b_dash.html", ctx)
     return _no_cache(resp)
 
-#Community
+# Community
 @login_required(login_url="user:login")
 def community(request):
+    # Get search query
+    search_query = (request.GET.get("q") or "").strip()
+
+    # Base queryset
     users = User.objects.exclude(role="admin").exclude(id=request.user.id)
+
+    # Apply search by name or email if query exists
+    if search_query:
+        users = users.filter(
+            Q(name__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+
+    # Calculate ratings for collectors
     for u in users:
         if u.role == "collector":
-            agg = CollectorRating.objects.filter(collector=u).aggregate(avg=Avg("stars"), cnt=Count("id"))
+            agg = CollectorRating.objects.filter(collector=u).aggregate(
+                avg=Avg("stars"), cnt=Count("id")
+            )
             u.average_rating = float(agg.get("avg") or 0.0)
             u.ratings_count = int(agg.get("cnt") or 0)
-    return render(request, "Buyer/b_community.html", {"users": users})
+
+    return render(
+        request,
+        "Buyer/b_community.html",
+        {"users": users, "search_query": search_query}
+    )
 
 
+# Rating system
 @login_required(login_url="user:login")
 @require_POST
 @csrf_exempt
@@ -195,21 +216,34 @@ def rate_collector(request, user_id):
     try:
         data = json.loads(request.body or "{}")
         rating_value = int(data.get("rating"))
+
         if rating_value < 1 or rating_value > 5:
             return JsonResponse({"success": False, "error": "Rating must be between 1 and 5"})
+
         collector = get_object_or_404(User, id=user_id, role="collector")
-        existing = CollectorRating.objects.filter(rater=request.user, collector=collector).first()
+
+        existing = CollectorRating.objects.filter(
+            rater=request.user, collector=collector
+        ).first()
+
         if existing:
             existing.stars = rating_value
             existing.save()
             msg = "Rating updated successfully!"
         else:
-            CollectorRating.objects.create(rater=request.user, collector=collector, stars=rating_value)
+            CollectorRating.objects.create(
+                rater=request.user, collector=collector, stars=rating_value
+            )
             msg = "Rating submitted successfully!"
+
         collector.recompute_rating()
-        return JsonResponse({"success": True, "message": msg,
-                             "new_avg_rating": float(collector.average_rating),
-                             "new_ratings_count": collector.ratings_count})
+
+        return JsonResponse({
+            "success": True,
+            "message": msg,
+            "new_avg_rating": float(collector.average_rating),
+            "new_ratings_count": collector.ratings_count,
+        })
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
 

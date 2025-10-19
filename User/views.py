@@ -37,19 +37,19 @@ def register_view(request):
         # basic validation
         if not email or not role:
             messages.error(request, "Email and role are required.")
-            return redirect("register")
+            return redirect("user:register")
 
         if len(password1) < 8:
             messages.error(request, "Password must be at least 8 characters.")
-            return redirect("register")
+            return redirect("user:register")
 
         if password1 != password2:
             messages.error(request, "Passwords do not match.")
-            return redirect("register")
+            return redirect("user:register")
 
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email is already registered.")
-            return redirect("register")
+            return redirect("user:register")
 
         # enforce ID image for collector/recycler
         if role in ("collector", "recycler") and not id_image:
@@ -57,7 +57,7 @@ def register_view(request):
                 request,
                 "An ID or visiting card image is required for Collector and Recycling Centre accounts."
             )
-            return redirect("register")
+            return redirect("user:register")
 
         user = User(email=email, role=role, is_active=False, is_approved=False)
         user.set_password(password1)
@@ -71,7 +71,7 @@ def register_view(request):
             for field, errs in e.message_dict.items():
                 for msg in errs:
                     messages.error(request, f"{field}: {msg}")
-            return redirect("register")
+            return redirect("user:register")
 
         messages.success(
             request,
