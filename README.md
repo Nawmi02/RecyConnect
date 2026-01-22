@@ -85,14 +85,10 @@ python manage.py migrate
 python manage.py runserver
 ```
 
----
-
 
 ## ▶️ Access the Application
 Access the application at:  
 http://127.0.0.1:8000/
-
----
 
 
 ## 🖥️ User Interface Preview
@@ -116,7 +112,7 @@ http://127.0.0.1:8000/
 
 ### Education
 <p align="center">
-  <img src="static/learn.png" width="750"/>
+  <img src="static/learn2.png" width="750"/>
 </p>
 
 ### Rewards
@@ -124,7 +120,7 @@ http://127.0.0.1:8000/
   <img src="static/rewards1.png" width="750"/>
    <img src="static/rewards2.png" width="750"/>
 </p>
----
+
 
 ## 🔮 Future Enhancements
 - Mobile application (Android / iOS)
@@ -134,7 +130,6 @@ http://127.0.0.1:8000/
 - Nationwide expansion across Bangladesh
 
 
----
 
 ## 👨‍💻 Development Team
 - **Nashrah Zakir** (22201202) – Group Leader  
@@ -142,7 +137,7 @@ http://127.0.0.1:8000/
 - Arfatunnesa Humaira (22201217)  
 - Lubna Akter (22201219)
 
----
+
 
 ## 📄 License
 This project is developed for academic and educational purposes under  
