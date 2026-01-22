@@ -84,7 +84,7 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 ```
-
+---
 
 ## ▶️ Access the Application
 Access the application at:  
@@ -121,6 +121,7 @@ http://127.0.0.1:8000/
    <img src="static/rewards2.png" width="750"/>
 </p>
 
+---
 
 ## 🔮 Future Enhancements
 - Mobile application (Android / iOS)
@@ -129,7 +130,7 @@ http://127.0.0.1:8000/
 - Automated payment & reward system
 - Nationwide expansion across Bangladesh
 
-
+---
 
 ## 👨‍💻 Development Team
 - **Nashrah Zakir** (22201202) – Group Leader  
